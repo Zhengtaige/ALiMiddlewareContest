@@ -1,8 +1,5 @@
 package com.alibaba.middleware.race.sync;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -12,6 +9,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by wanshao on 2017/5/25.
@@ -28,7 +27,8 @@ public class Client {
         Logger logger = LoggerFactory.getLogger(Client.class);
         logger.info("Welcome");
         // 从args获取server端的ip
-        ip = args[0];
+//        ip = args[0];
+        ip = "127.0.0.1"; //本地测试用本地ip就行了，提交上去估计要改一下
         Client client = new Client();
         client.connect(ip, port);
 

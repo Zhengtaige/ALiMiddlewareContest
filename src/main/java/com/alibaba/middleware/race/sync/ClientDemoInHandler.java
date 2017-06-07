@@ -1,11 +1,10 @@
 package com.alibaba.middleware.race.sync;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by wanshao on 2017/5/25.
@@ -22,8 +21,11 @@ public class ClientDemoInHandler extends ChannelInboundHandlerAdapter {
         ByteBuf result = (ByteBuf) msg;
         byte[] result1 = new byte[result.readableBytes()];
         result.readBytes(result1);
+        //接收到服务端的消息
         System.out.println("com.alibaba.middleware.race.sync.Server said:" + new String(result1));
         result.release();
+
+        //发个消息回去
         ctx.writeAndFlush("I have received your messages and wait for next messages");
     }
 

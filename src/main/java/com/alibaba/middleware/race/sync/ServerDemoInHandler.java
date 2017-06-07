@@ -1,15 +1,10 @@
 package com.alibaba.middleware.race.sync;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 处理client端的请求 Created by wanshao on 2017/5/25.
@@ -17,10 +12,11 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 
     private static Logger logger = LoggerFactory.getLogger(ServerDemoInHandler.class);
+    int i = 0;
 
     /**
      * 根据channel
-     * 
+     *
      * @param ctx
      * @return
      */
@@ -49,18 +45,17 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 
         while (true) {
             // 向客户端发送消息
-            String message = (String) getMessage();
+            final String message = (String) getMessage();
             if (message != null) {
-                Channel channel = Server.getMap().get("127.0.0.1");
+                Channel channel = Server.getMap().get("127.0.0.1"); //客户端在本地运行所以只取本地
                 ByteBuf byteBuf = Unpooled.wrappedBuffer(message.getBytes());
                 channel.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
 
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        logger.info("Server发送消息成功！");
+                        logger.info("Server发送消息成功！(%s)", message);
                     }
                 });
-
             }
         }
 
@@ -75,7 +70,9 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
         // 模拟下数据生成，每隔5秒产生一条消息
         Thread.sleep(5000);
 
-        return "message generated in ServerDemoInHandler";
+        //比赛时在这里产生消息内容
+
+        return "message generated in ServerDemoInHandler. i:" + i++;
 
     }
 }

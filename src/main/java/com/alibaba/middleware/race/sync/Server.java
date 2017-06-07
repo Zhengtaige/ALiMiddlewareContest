@@ -1,27 +1,22 @@
 package com.alibaba.middleware.race.sync;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 服务器类，负责push消息到client Created by wanshao on 2017/5/25.
  */
 public class Server {
 
-    // 保存channel
+    // 保存channel,保存key和value为   客户端ip，chanel
     private static Map<String, Channel> map = new ConcurrentHashMap<String, Channel>();
     // 接收评测程序的三个参数
     private static String schema;
@@ -37,8 +32,8 @@ public class Server {
 
     public static void main(String[] args) throws InterruptedException {
         initProperties();
-        printInput(args);
-        Logger logger = LoggerFactory.getLogger(Client.class);
+//        printInput(args);
+        Logger logger = LoggerFactory.getLogger(Server.class);
         Server server = new Server();
         logger.info("com.alibaba.middleware.race.sync.Server is running....");
 
@@ -53,8 +48,10 @@ public class Server {
     private static void printInput(String[] args) {
         // 第一个参数是Schema Name
         System.out.println("Schema:" + args[0]);
+        schema = args[0];
         // 第二个参数是Schema Name
         System.out.println("table:" + args[1]);
+
         // 第三个参数是start pk Id
         System.out.println("start:" + args[2]);
         // 第四个参数是end pk Id
