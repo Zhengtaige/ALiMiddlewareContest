@@ -80,7 +80,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
                 });
             }
 
-            if (i++ > 50) {
+            if (i++ > 500) {
                 ctx.close();
                 break;
             }
