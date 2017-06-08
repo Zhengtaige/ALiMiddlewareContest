@@ -7,9 +7,12 @@
     
 Log地址，方便下载：
 
-Server端日志：http://middle2017.oss-cn-shanghai.aliyuncs.com/7721890v3f/server-7721890v3f-INFO.log.part
+Server端日志：http://middle2017.oss-cn-shanghai.aliyuncs.com/7721890v3f/server.log.tar.gz
+
 Server端GC日志：http://middle2017.oss-cn-shanghai.aliyuncs.com/7721890v3f/gc_server.log
-Client端日志：http://middle2017.oss-cn-shanghai.aliyuncs.com/7721890v3f/client-7721890v3f-INFO.log.part
+
+Client端日志：http://middle2017.oss-cn-shanghai.aliyuncs.com/7721890v3f/client.log.tar.gz
+
 Client端GC日志：http://middle2017.oss-cn-shanghai.aliyuncs.com/7721890v3f/gc_client.log
 
 
