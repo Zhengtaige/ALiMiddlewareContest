@@ -55,7 +55,7 @@ d. 列信息
 
 e. 列值
  * 主要分为变更前和变更后,NULL代表物理值为NULL(空值),(可不考虑字符串本身为"NULL"的特殊情况)
- * insert变更,只有变更后列值,其变更前列值为<NULL>,会包含所有的列信息
+ * insert变更,只有变更后列值,其变更前列值为NULL,会包含所有的列信息
  * upadate变更,都会有变更前和后的列值,会包含主键和发生变更列的信息(未发生变更过的列不会给出,不是全列信息)
  * delete变革,只有变更前列值,会包含所有的列信息
 
@@ -108,7 +108,7 @@ PS：
 
 
 为了方便选手测试，也提供了生产好的数据和答案(用的钉钉的网盘)，选手可以下载，其中数据文件可以通过split命令自行分割成10个小文件来测试
-- [测试文件](https://space.dingtalk.com/c/ggHaACQ4Mzc5MDMzMy05NzA1LTRhOWMtYmMyNi1iMjAyNGFiNTg5OTECzhngP1o)
+- [测试文件](https://space.dingtalk.com/c/ggHaACQwZmE1ZDc3MC03MzcwLTQ1NjAtYWI4Mi00MTU4YjBlMTQxNDUCzhn0eXw)
 
 另外选手可以使用如下的存储过程来生成数据：
 
@@ -244,7 +244,7 @@ java $JAVA_OPS -cp $jarPath com.alibaba.middleware.race.sync.Client
 注意点：
 1. 选手的server端程序由server端的评测程序来kill
 2. client端的评测程序需要选手自己控制在得到最终结果后停止，否则会有超时问题
-3. 为了保证server端能正常启动，评测程序会在启动server后强制休眠15秒后再向client端发起请求，因此最终结果是finalTime加上15秒。
+
 
 # ============================= 如何获取评测日志 ===================================
 1. 超时时间： server端不做超时处理，client端超时时间为5分钟
@@ -255,14 +255,14 @@ java $JAVA_OPS -cp $jarPath com.alibaba.middleware.race.sync.Client
     - 日志的命名${logName}按照如下命名：${test.role}-${teamCode}-WARN.log.part和${test.role}-${teamCode}-INFO.log.part。例如client-teamCode-INFO.log.part或者server-teamCode-INFO.log.part。${test.role}可以为client或者server
     - 如果查看GC日志的话，${logName}则为gc_client.log或者gc_server.log
     - 选手可以通过地址：http://middle2017.oss-cn-shanghai.aliyuncs.com/${teamCode}/${logName} 这样的形式获取自己的日志
-    - 日志已经做了上传日志行数的限制，server端对INFO、WARN、ERROR取行尾的10、360、10行上传，client端则为10、150、10行上传
+    - 日志已经做了上传大小的限制，INFO日志限制10K，WARN和ERROR日志限制大小1K
 
 
 
 
 # ================================= 如何使用Demo ================================
 Demo基于netty实现了简单的客户端和服务端程序。
-1. Server: 负责接收评测系统给其的输入(通过args参数)，并且将解析好的数据交给Client。
+1. Server: 负责接收评测系统给其的输入(通过args参数)，并且将解析好的数据交给Client。每次提交评测会给定4个参数，作为一组输入，保存在main的args对象里
 2. Client: 启动后根据评测系统给其的serverIp来启动，启动后接受Server的信息，并且将最终结果写入到指定结果文件目录
 
 ```
@@ -485,3 +485,14 @@ file locks                      (-x) unlimited
 确定的，主键是数字类型
 ```
 
+14. 预热赛和正式赛有什么区别？
+
+```
+预热赛和正式赛的比赛数据不同。
+```
+
+15. 会不会有原本是查询范围外的主键通过update变成查询范围内的？
+
+```
+会有
+```
