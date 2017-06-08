@@ -35,9 +35,9 @@ public class Server {
         printInput(args);
         Logger logger = LoggerFactory.getLogger(Server.class);
         Server server = new Server();
-        for (int i = 0; i < 100; i++) { //防止后面的log被截断
+//        for (int i = 0; i < 100; i++) { //防止后面的log被截断
             logger.info("com.alibaba.middleware.race.sync.Server is running....");
-        }
+//        }
 
         server.startServer(5527);
     }

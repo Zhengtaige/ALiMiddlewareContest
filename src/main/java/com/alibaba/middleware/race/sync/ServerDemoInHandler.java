@@ -115,6 +115,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
                 out = new RandomAccessFile(fileList[0], "rw")
                         .getChannel()
                         .map(FileChannel.MapMode.READ_ONLY, 0, mapLength);
+                out.load(); //强制加载文件到内存中
                 inited = true;
             } catch (IOException e) {
                 e.printStackTrace();
