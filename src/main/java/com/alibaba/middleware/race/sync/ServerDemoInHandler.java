@@ -65,6 +65,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 
         int i = 0;
         while (true) {
+//            System.out.println(i);
             // 向客户端发送消息
             final byte[] message = getMessage();
             if (message != null) {
