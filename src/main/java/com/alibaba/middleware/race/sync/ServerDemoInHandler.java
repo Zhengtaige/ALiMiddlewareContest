@@ -45,6 +45,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
         // 接收并打印客户端的信息
         System.out.println("com.alibaba.middleware.race.sync.Client said:" + resultStr);
 
+        //发送执行参数
         channel.writeAndFlush(Unpooled.wrappedBuffer(Server.params.getBytes())).addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
