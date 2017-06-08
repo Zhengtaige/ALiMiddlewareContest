@@ -18,7 +18,7 @@ public class ClientDemoInHandler extends ChannelInboundHandlerAdapter {
     private int start;
     private int end;
 
-    private int limit = 0;
+//    private int limit = 0;
 
     // 接收server端的消息，并打印出来
     @Override
@@ -44,7 +44,7 @@ public class ClientDemoInHandler extends ChannelInboundHandlerAdapter {
 
         }
 
-        if (limit++ > 50) ctx.close(); //用于测试，收到消息大于xx次退出
+//        if (limit++ > 50) ctx.close(); //用于测试，收到消息大于xx次退出
 
         result.release();
 

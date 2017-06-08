@@ -63,6 +63,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
             }
         });
 
+        int i = 0;
         while (true) {
             // 向客户端发送消息
             final byte[] message = getMessage();
@@ -77,6 +78,11 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
                     }
                 });
             }
+
+            if (i++ > 50) {
+                ctx.close();
+                break;
+            }
         }
 
     }
@@ -88,7 +94,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 
     private byte[] getMessage() throws InterruptedException {
         // 模拟下数据生成，每隔5秒产生一条消息
-        Thread.sleep(1000);
+//        Thread.sleep(1000);
 //
 //        //比赛时在这里产生消息内容
 //
