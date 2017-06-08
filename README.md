@@ -4,6 +4,13 @@
     2.Server和Client在运行的时候均需要传参，在本地测试为了方便看开发那些参数就可以注释掉了
     3.上面所修改的内容比赛上传程序的时候一定要记得改回去
     4.一些便于理解的注释
+    
+Log地址，方便下载：
+
+Server端日志：http://middle2017.oss-cn-shanghai.aliyuncs.com/7721890v3f/server-7721890v3f-INFO.log.part
+Server端GC日志：http://middle2017.oss-cn-shanghai.aliyuncs.com/7721890v3f/gc_server.log
+Client端日志：http://middle2017.oss-cn-shanghai.aliyuncs.com/7721890v3f/client-7721890v3f-INFO.log.part
+Client端GC日志：http://middle2017.oss-cn-shanghai.aliyuncs.com/7721890v3f/gc_client.log
 
 
 
@@ -256,8 +263,6 @@ java $JAVA_OPS -cp $jarPath com.alibaba.middleware.race.sync.Client
     - 如果查看GC日志的话，${logName}则为gc_client.log或者gc_server.log
     - 选手可以通过地址：http://middle2017.oss-cn-shanghai.aliyuncs.com/${teamCode}/${logName} 这样的形式获取自己的日志
     - 日志已经做了上传大小的限制，INFO日志限制10K，WARN和ERROR日志限制大小1K
-
-
 
 
 # ================================= 如何使用Demo ================================
