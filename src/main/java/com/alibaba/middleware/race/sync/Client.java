@@ -27,8 +27,7 @@ public class Client {
         Logger logger = LoggerFactory.getLogger(Client.class);
         logger.info("Welcome");
         // 从args获取server端的ip
-//        ip = args[0];
-        ip = "127.0.0.1"; //本地测试用本地ip就行了，提交上去估计要改一下
+        ip = args[0];
         Client client = new Client();
         client.connect(ip, port);
 

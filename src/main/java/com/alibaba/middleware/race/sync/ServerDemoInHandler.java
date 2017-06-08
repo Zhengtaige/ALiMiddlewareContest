@@ -13,6 +13,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 
     private static Logger logger = LoggerFactory.getLogger(ServerDemoInHandler.class);
     int i = 0;
+    private Channel channel;
 
     /**
      * 根据channel
@@ -32,7 +33,8 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
         // 保存channel
-        Server.getMap().put(getIPString(ctx), ctx.channel());
+//        Server.getMap().put(getIPString(ctx), ctx.channel());
+        channel = ctx.channel();
 
         logger.info("com.alibaba.middleware.race.sync.ServerDemoInHandler.channelRead");
         ByteBuf result = (ByteBuf) msg;
@@ -43,11 +45,18 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
         // 接收并打印客户端的信息
         System.out.println("com.alibaba.middleware.race.sync.Client said:" + resultStr);
 
+        channel.writeAndFlush(Unpooled.wrappedBuffer(Server.params.getBytes())).addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                logger.info("send params success: " + Server.params);
+            }
+        });
+
         while (true) {
             // 向客户端发送消息
             final String message = (String) getMessage();
             if (message != null) {
-                Channel channel = Server.getMap().get("127.0.0.1"); //客户端在本地运行所以只取本地
+//                Channel channel = Server.getMap().get("127.0.0.1"); //客户端在本地运行所以只取本地
                 ByteBuf byteBuf = Unpooled.wrappedBuffer(message.getBytes());
                 channel.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
 

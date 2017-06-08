@@ -16,10 +16,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Server {
 
+    // 接收评测程序的三个参数
+    public static String params;
     // 保存channel,保存key和value为   客户端ip，chanel
     private static Map<String, Channel> map = new ConcurrentHashMap<String, Channel>();
-    // 接收评测程序的三个参数
-    private static String schema;
     private static Map tableNamePkMap;
 
     public static Map<String, Channel> getMap() {
@@ -32,7 +32,7 @@ public class Server {
 
     public static void main(String[] args) throws InterruptedException {
         initProperties();
-//        printInput(args);
+        printInput(args);
         Logger logger = LoggerFactory.getLogger(Server.class);
         Server server = new Server();
         logger.info("com.alibaba.middleware.race.sync.Server is running....");
@@ -46,16 +46,15 @@ public class Server {
      * id>100 and id<200
      */
     private static void printInput(String[] args) {
-        // 第一个参数是Schema Name
-        System.out.println("Schema:" + args[0]);
-        schema = args[0];
-        // 第二个参数是Schema Name
-        System.out.println("table:" + args[1]);
-
-        // 第三个参数是start pk Id
-        System.out.println("start:" + args[2]);
-        // 第四个参数是end pk Id
-        System.out.println("end:" + args[3]);
+//        // 第一个参数是Schema Name
+//        System.out.println("Schema:" + args[0]);
+//        // 第二个参数是Schema Name
+//        System.out.println("table:" + args[1]);
+//        // 第三个参数是start pk Id
+//        System.out.println("start:" + args[2]);
+//        // 第四个参数是end pk Id
+//        System.out.println("end:" + args[3]);
+        params = String.format("%s,%s,%s,%s", args);
 
     }
 
