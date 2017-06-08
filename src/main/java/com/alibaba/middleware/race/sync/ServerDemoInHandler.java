@@ -6,14 +6,24 @@ import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+
 /**
  * 处理client端的请求 Created by wanshao on 2017/5/25.
  */
 public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 
+    private static final int mapLength = 1024 * 1024 * 1024; //1G
     private static Logger logger = LoggerFactory.getLogger(ServerDemoInHandler.class);
     int i = 0;
     private Channel channel;
+    private boolean inited = false;
+    private MappedByteBuffer out;
+    private int offset = 0; //读到第几个byte
 
     /**
      * 根据channel
@@ -55,15 +65,15 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 
         while (true) {
             // 向客户端发送消息
-            final String message = (String) getMessage();
+            final byte[] message = getMessage();
             if (message != null) {
 //                Channel channel = Server.getMap().get("127.0.0.1"); //客户端在本地运行所以只取本地
-                ByteBuf byteBuf = Unpooled.wrappedBuffer(message.getBytes());
+                ByteBuf byteBuf = Unpooled.wrappedBuffer(message);
                 channel.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
 
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        logger.info("Server发送消息成功！(%s)", message);
+                        logger.info(String.format("sent %s bytes: " + new String(message), message.length));
                     }
                 });
             }
@@ -76,13 +86,48 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
         ctx.flush();
     }
 
-    private Object getMessage() throws InterruptedException {
+    private byte[] getMessage() throws InterruptedException {
         // 模拟下数据生成，每隔5秒产生一条消息
-        Thread.sleep(5000);
+        Thread.sleep(1000);
+//
+//        //比赛时在这里产生消息内容
+//
+//        return "message generated in ServerDemoInHandler. i:" + i++;
+        if (!inited) {
+            try {
+                File file = new File(Constants.DATA_HOME);
+                File[] fileList = file.listFiles();
+                for (File f :
+                        fileList) {
+                    //输出目录下所有文件名和文件大小
+                    logger.info("name: {}, size: {} MB", f.getName(), f.length() / 1024. / 1024.);
+                }
 
-        //比赛时在这里产生消息内容
+                //只读第一个文件
+//                out = new RandomAccessFile(Constants.DATA_HOME + "/" + "1.txt", "rw")
+                out = new RandomAccessFile(fileList[0], "rw")
+                        .getChannel()
+                        .map(FileChannel.MapMode.READ_ONLY, 0, mapLength);
+                inited = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
-        return "message generated in ServerDemoInHandler. i:" + i++;
+        byte b;
+        int i = 70; //由于每行数据一般至少会有一定长度的
+        do {
+            b = out.get(offset + i);
+            i++;
+        } while (b != '\n');
+
+        byte[] res = new byte[i];
+        out.get(res);
+        offset += i;
+
+//        System.out.println(String.format("readed %s bytes: " + new String(res), i));
+
+        return res;
 
     }
 }
