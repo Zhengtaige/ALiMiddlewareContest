@@ -3,6 +3,7 @@ package com.alibaba.middleware.race.sync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
@@ -13,22 +14,22 @@ import java.util.Arrays;
  * Created by autulin on 6/7/17.
  */
 public class FileReader {
-    private static final int mapLength = Integer.MAX_VALUE;
+    //    private static final int mapLength = Integer.MAX_VALUE;
     private static Logger logger = LoggerFactory.getLogger(FileReader.class);
 
     public static void main(String[] args) throws IOException {
-        readOneFile("1.txt", "middleware5", "student", 100, 200);
+//        readOneFile("1.txt", "middleware5", "student", 100, 200);
     }
 
-    public static void readOneFile(String fileName, String schema, String table, int start, int end) {
+    public static void readOneFile(File file, String schema, String table, int start, int end) {
         Long startTime = System.currentTimeMillis();
         MappedByteBuffer mappedByteBuffer = null;
         try {
-            mappedByteBuffer = new RandomAccessFile(Constants.DATA_HOME + "/" + fileName, "r")
+            mappedByteBuffer = new RandomAccessFile(file, "r")
                     .getChannel()
-                    .map(FileChannel.MapMode.READ_ONLY, 0, mapLength);
+                    .map(FileChannel.MapMode.READ_ONLY, 0, file.length());
         } catch (IOException e) {
-            logger.error(e.getMessage());
+            logger.error(e.toString());
         }
         mappedByteBuffer.load();
 
@@ -40,7 +41,7 @@ public class FileReader {
         int totalOperationForStarAndEnd = 0;
         int totalOperationUpdatePK = 0;
         int totalOutToIn = 0;
-        logger.info("start read {}", fileName);
+        logger.info("start read {}", file.getName());
         for (; mappedByteBuffer.hasRemaining(); ) {
             if (mappedByteBuffer.get(mappedByteBuffer.position()) == '\0') { //尝试读取下一个byte（不改变position），”\0“为文件结束
                 logger.info("read done!");
@@ -127,7 +128,7 @@ public class FileReader {
 
         Long endTime = System.currentTimeMillis();
 
-        logger.info(String.format("file(%s) cost: %s, operation num: %s, in arrange: %s, update primary key: %s, sao primaty key: %s", fileName, (endTime - startTime), totalOperationForTable, totalOperationForStarAndEnd, totalOperationUpdatePK, totalOutToIn));
+        logger.info(String.format("file(%s) cost: %s, operation num: %s, in arrange: %s, update primary key: %s, sao primaty key: %s", file.getName(), (endTime - startTime), totalOperationForTable, totalOperationForStarAndEnd, totalOperationUpdatePK, totalOutToIn));
     }
 
 
