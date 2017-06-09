@@ -9,6 +9,9 @@ import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Created by autulin on 6/7/17.
@@ -41,6 +44,9 @@ public class FileReader {
         int totalOperationForStarAndEnd = 0;
         int totalOperationUpdatePK = 0;
         int totalOutToIn = 0;
+        int totalInArrangeKeyChange = 0;
+        Set<String> schemaSets = new HashSet<>();
+        Set<String> tableSets = new HashSet<>();
         logger.info("start read {}", file.getName());
         for (; mappedByteBuffer.hasRemaining(); ) {
             if (mappedByteBuffer.get(mappedByteBuffer.position()) == '\0') { //尝试读取下一个byte（不改变position），”\0“为文件结束
@@ -48,13 +54,17 @@ public class FileReader {
                 break;
             }
 
-            String tSchema = new String(readArea(mappedByteBuffer, 3));
+            String tSchema = readStringArea(mappedByteBuffer, 3);
+            if (!schemaSets.contains(tSchema)) {
+                schemaSets.add(tSchema);
+            }
             if (!schema.equals(tSchema)) {
                 readLine(mappedByteBuffer, false);
                 continue;
             }
 
-            String tTable = new String(readArea(mappedByteBuffer, 1));
+            String tTable = readStringArea(mappedByteBuffer, 1);
+            if (!tableSets.contains(tTable)) tableSets.add(tTable);
             if (!table.equals(tTable)) {
                 readLine(mappedByteBuffer, false);
                 continue;
@@ -73,12 +83,16 @@ public class FileReader {
             if (isIn) {
                 totalOperationForStarAndEnd++;
                 //删除或插入或更新主键的操作
-                if ((keyAfter == -1 || keyBefore == -1 || (keyBefore != keyAfter))) {
+                if (keyBefore != keyAfter) {
                     totalOperationUpdatePK++;
+                    //外面的主键跑到里面来了
+                    if ((keyBefore > end || keyBefore < start) && (keyAfter > start && keyAfter < end))
+                        totalOutToIn++;
+                    //区间内的主键变化
+                    if ((keyBefore < end && keyBefore > start) && (keyAfter > start && keyAfter < end))
+                        totalInArrangeKeyChange++;
                 }
-                //外面的主键跑到里面来了
-                if (keyBefore != -1 && (keyBefore > end || keyBefore < start) && (keyAfter > start && keyAfter < end))
-                    totalOutToIn++;
+
             }
 
             switch (operation) {
@@ -104,6 +118,7 @@ public class FileReader {
                     colume = readColume(mappedByteBuffer);
                     System.out.print(colume);
                     System.out.println("-value:" + new String(readArea(mappedByteBuffer, 2)));
+                    mappedByteBuffer.get(); //跳过最后的"|"
                     break;
                 case 'U':
                     //正常情况
@@ -129,7 +144,16 @@ public class FileReader {
 
         Long endTime = System.currentTimeMillis();
 
-        logger.info(String.format("file(%s) cost: %s, operation num: %s, in arrange: %s, update primary key: %s, sao primaty key: %s", file.getName(), (endTime - startTime), totalOperationForTable, totalOperationForStarAndEnd, totalOperationUpdatePK, totalOutToIn));
+        logger.info(String.format("file(%s) cost: %s, operation num: %s, in arrange: %s, update primary key: %s, out->in primary key: %s, in->in primary key: %s",
+                file.getName(), (endTime - startTime), totalOperationForTable, totalOperationForStarAndEnd, totalOperationUpdatePK, totalOutToIn, totalInArrangeKeyChange));
+        logger.info("Schema num: {}", schemaSets.size());
+        for (String s : schemaSets) {
+            logger.info(s);
+        }
+        logger.info("Table num: {}", tableSets.size());
+        for (String s : tableSets) {
+            logger.info(s);
+        }
     }
 
 
