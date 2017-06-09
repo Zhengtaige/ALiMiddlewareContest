@@ -24,7 +24,7 @@ public class FileReader {
         Long startTime = System.currentTimeMillis();
         MappedByteBuffer mappedByteBuffer = null;
         try {
-            mappedByteBuffer = new RandomAccessFile(Constants.DATA_HOME + "/" + fileName, "rw")
+            mappedByteBuffer = new RandomAccessFile(Constants.DATA_HOME + "/" + fileName, "r")
                     .getChannel()
                     .map(FileChannel.MapMode.READ_ONLY, 0, mapLength);
         } catch (IOException e) {
