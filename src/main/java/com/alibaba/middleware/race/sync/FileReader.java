@@ -20,11 +20,16 @@ public class FileReader {
         readOneFile("1.txt", "middleware5", "student", 100, 200);
     }
 
-    public static void readOneFile(String fileName, String schema, String table, int start, int end) throws IOException {
+    public static void readOneFile(String fileName, String schema, String table, int start, int end) {
         Long startTime = System.currentTimeMillis();
-        MappedByteBuffer mappedByteBuffer = new RandomAccessFile(Constants.DATA_HOME + "/" + fileName, "rw")
-                .getChannel()
-                .map(FileChannel.MapMode.READ_ONLY, 0, mapLength);
+        MappedByteBuffer mappedByteBuffer = null;
+        try {
+            mappedByteBuffer = new RandomAccessFile(Constants.DATA_HOME + "/" + fileName, "rw")
+                    .getChannel()
+                    .map(FileChannel.MapMode.READ_ONLY, 0, mapLength);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         mappedByteBuffer.load();
 
         boolean gotI = false;
