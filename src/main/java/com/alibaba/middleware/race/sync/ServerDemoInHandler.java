@@ -7,10 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 
 /**
  * 处理client端的请求 Created by wanshao on 2017/5/25.
@@ -20,6 +17,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
     private static final int mapLength = 1024 * 1024 * 1024; //1G
     private static Logger logger = LoggerFactory.getLogger(ServerDemoInHandler.class);
     int i = 0;
+    File[] fileList;
     private Channel channel;
     private boolean inited = false;
     private MappedByteBuffer out;
@@ -63,28 +61,47 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
             }
         });
 
-        int i = 0;
-        while (true) {
-//            System.out.println(i);
-            // 向客户端发送消息
-            final byte[] message = getMessage();
-            if (message != null) {
-//                Channel channel = Server.getMap().get("127.0.0.1"); //客户端在本地运行所以只取本地
-                ByteBuf byteBuf = Unpooled.wrappedBuffer(message);
-                channel.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
 
+        if (!inited) {
+            File file = new File(Constants.DATA_HOME);
+            fileList = file.listFiles();
+            for (File f :
+                    fileList) {
+                //输出目录下所有文件名和文件大小
+                logger.info("name: {}, size: {} MB", f.getName(), f.length() / 1024. / 1024.);
+                FileReader.readOneFile(f.getName(), Server.schemaName, Server.tableName, Server.startPkId, Server.endPkId);
+                channel.writeAndFlush(Unpooled.wrappedBuffer(String.format("file %s read done!", f.getName()).getBytes())).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        logger.info(String.format("sent %s bytes: " + new String(message), message.length));
+                        logger.info("sent read success!");
                     }
                 });
             }
-
-            if (i++ > 500) {
-                ctx.close();
-                break;
-            }
         }
+
+
+//        int i = 0;
+//        while (true) {
+////            System.out.println(i);
+//            // 向客户端发送消息
+//            final byte[] message = getMessage();
+//            if (message != null) {
+////                Channel channel = Server.getMap().get("127.0.0.1"); //客户端在本地运行所以只取本地
+//                ByteBuf byteBuf = Unpooled.wrappedBuffer(message);
+//                channel.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
+//
+//                    @Override
+//                    public void operationComplete(ChannelFuture future) throws Exception {
+//                        logger.info(String.format("sent %s bytes: " + new String(message), message.length));
+//                    }
+//                });
+//            }
+//
+//            if (i++ > 500) {
+//                ctx.close();
+//                break;
+//            }
+//        }
 
     }
 
@@ -100,42 +117,9 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 //        //比赛时在这里产生消息内容
 //
 //        return "message generated in ServerDemoInHandler. i:" + i++;
-        if (!inited) {
-            try {
-                File file = new File(Constants.DATA_HOME);
-                File[] fileList = file.listFiles();
-                for (File f :
-                        fileList) {
-                    //输出目录下所有文件名和文件大小
-                    logger.info("name: {}, size: {} MB", f.getName(), f.length() / 1024. / 1024.);
-                }
 
-                //只读第一个文件
-//                out = new RandomAccessFile(Constants.DATA_HOME + "/" + "1.txt", "rw")
-                out = new RandomAccessFile(fileList[0], "rw")
-                        .getChannel()
-                        .map(FileChannel.MapMode.READ_ONLY, 0, mapLength);
-                out.load(); //强制加载文件到内存中
-                inited = true;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
 
-        byte b;
-        int i = 70; //由于每行数据一般至少会有一定长度的
-        do {
-            b = out.get(offset + i);
-            i++;
-        } while (b != '\n');
-
-        byte[] res = new byte[i];
-        out.get(res);
-        offset += i;
-
-//        System.out.println(String.format("readed %s bytes: " + new String(res), i));
-
-        return res;
+        return "".getBytes();
 
     }
 }

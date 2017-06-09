@@ -18,6 +18,11 @@ public class Server {
 
     // 接收评测程序的三个参数
     public static String params;
+    public static String schemaName;
+    public static String tableName;
+    public static int startPkId;
+    public static int endPkId;
+
     // 保存channel,保存key和value为   客户端ip，chanel
     private static Map<String, Channel> map = new ConcurrentHashMap<String, Channel>();
     private static Map tableNamePkMap;
@@ -56,6 +61,11 @@ public class Server {
 //        System.out.println("start:" + args[2]);
 //        // 第四个参数是end pk Id
 //        System.out.println("end:" + args[3]);
+        schemaName = args[0];
+        tableName = args[1];
+        startPkId = Integer.parseInt(args[2]);
+        endPkId = Integer.parseInt(args[3]);
+
         params = String.format("%s,%s,%s,%s", args);
 
     }
