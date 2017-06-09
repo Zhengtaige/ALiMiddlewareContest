@@ -29,20 +29,20 @@ public class ClientDemoInHandler extends ChannelInboundHandlerAdapter {
         result.readBytes(result1);
         String resultString = new String(result1);
 //        System.out.println();
-        if (!recievedParams) { //第一次发送的参数
-            String[] params = resultString.split(",");
-            schema = params[0];
-            table = params[1];
-            start = Integer.valueOf(params[2]);
-            end = Integer.valueOf(params[3]);
-            recievedParams = true;
-            logger.info("get params: {} {} {} {}", schema, table, start, end);
-//            System.out.println(schema + table + start + end);
-        } else { //之后发送的操作
+//        if (!recievedParams) { //第一次发送的参数
+//            String[] params = resultString.split(",");
+//            schema = params[0];
+//            table = params[1];
+//            start = Integer.valueOf(params[2]);
+//            end = Integer.valueOf(params[3]);
+//            recievedParams = true;
+//            logger.info("get params: {} {} {} {}", schema, table, start, end);
+////            System.out.println(schema + table + start + end);
+//        } else { //之后发送的操作
             //进行重放操作
             logger.info("Server said:" + resultString);
 
-        }
+//        }
 
 //        if (limit++ > 50) ctx.close(); //用于测试，收到消息大于xx次退出
 
