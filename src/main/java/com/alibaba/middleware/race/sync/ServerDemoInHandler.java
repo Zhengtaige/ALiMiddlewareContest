@@ -53,6 +53,14 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
         // 接收并打印客户端的信息
         logger.info("Client said:" + resultStr);
 
+        //发送执行参数
+        channel.writeAndFlush(Unpooled.wrappedBuffer(Server.params.getBytes())).addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                logger.info("send params success: " + Server.params);
+            }
+        });
+
 
         if (!inited) {
             File file = new File(Constants.DATA_HOME);
@@ -65,6 +73,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 
             for (int j = 1; j <= 10; j++) {
                 FileReader.readOneFile(new File(Constants.DATA_HOME + "/" + j + ".txt"), Server.schemaName, Server.tableName, Server.startPkId, Server.endPkId);
+//                Thread.sleep(100);
                 channel.writeAndFlush(Unpooled.wrappedBuffer(String.format("file %s.txt read done!", j).getBytes())).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
@@ -72,16 +81,18 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
                     }
                 });
             }
+
+            // 发送结束标志
+            channel.writeAndFlush(Unpooled.wrappedBuffer(new byte[]{-1})).addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    logger.info("sent close signal");
+                }
+            });
             inited = true;
         }
 
-        //发送执行参数
-        channel.writeAndFlush(Unpooled.wrappedBuffer(Server.params.getBytes())).addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                logger.info("send params success: " + Server.params);
-            }
-        });
+
 
 //        int i = 0;
 //        while (true) {

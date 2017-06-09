@@ -27,7 +27,12 @@ public class ClientDemoInHandler extends ChannelInboundHandlerAdapter {
         ByteBuf result = (ByteBuf) msg;
         byte[] result1 = new byte[result.readableBytes()];
         result.readBytes(result1);
-        String resultString = new String(result1);
+
+        if (result1[0] == -1) {
+            logger.info("recieved close signal!");
+            ctx.close();
+        } else {
+            String resultString = new String(result1);
 //        System.out.println();
 //        if (!recievedParams) { //第一次发送的参数
 //            String[] params = resultString.split(",");
@@ -43,6 +48,8 @@ public class ClientDemoInHandler extends ChannelInboundHandlerAdapter {
             logger.info("Server said:" + resultString);
 
 //        }
+        }
+
 
 //        if (limit++ > 50) ctx.close(); //用于测试，收到消息大于xx次退出
 
