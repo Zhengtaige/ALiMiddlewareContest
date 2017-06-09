@@ -18,7 +18,7 @@ public class FileReader {
     private static Logger logger = LoggerFactory.getLogger(FileReader.class);
 
     public static void main(String[] args) throws IOException {
-//        readOneFile("1.txt", "middleware5", "student", 100, 200);
+        readOneFile(new File(Constants.DATA_HOME + "/" + "1.txt"), "middleware5", "student", 100, 200);
     }
 
     public static void readOneFile(File file, String schema, String table, int start, int end) {
@@ -64,20 +64,21 @@ public class FileReader {
 
             //先把主键读了
             readColume(mappedByteBuffer);
-//            String keyBeforeStr = new String(readArea(mappedByteBuffer, 1));
-//            String keyAfterStr = new String(readArea(mappedByteBuffer, 1));
             //修改主键的情况
             int keyBefore = readIntArea(mappedByteBuffer, 1);
             int keyAfter = readIntArea(mappedByteBuffer, 1);
 
             //是否在区间内操作
-            boolean isIn = (keyAfter > start && keyAfter < end) || (keyAfter == -1 && (keyBefore > start && keyBefore < end));
+            boolean isIn = (keyAfter > start && keyAfter < end) || (keyBefore > start && keyBefore < end);
             if (isIn) {
                 totalOperationForStarAndEnd++;
-                if ((keyAfter == -1 && (keyBefore > start && keyBefore < end)) || (keyBefore != -1 && keyBefore != keyAfter && keyAfter > start && keyAfter < end)) {
+                //删除或插入或更新主键的操作
+                if ((keyAfter == -1 || keyBefore == -1 || (keyBefore != keyAfter))) {
                     totalOperationUpdatePK++;
                 }
-                if ((keyBefore > end || keyAfter < start) && (keyAfter > start && keyAfter < end)) totalOutToIn++;
+                //外面的主键跑到里面来了
+                if (keyBefore != -1 && (keyBefore > end || keyBefore < start) && (keyAfter > start && keyAfter < end))
+                    totalOutToIn++;
             }
 
             switch (operation) {

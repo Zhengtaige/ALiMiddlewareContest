@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.MappedByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 处理client端的请求 Created by wanshao on 2017/5/25.
@@ -71,15 +73,16 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
                 logger.info("name: {}, size: {} MB", f.getName(), f.length() / 1024. / 1024.);
             }
 
+            List<Thread> threadList = new ArrayList<>();
             for (int j = 1; j <= 10; j++) {
-                FileReader.readOneFile(new File(Constants.DATA_HOME + "/" + j + ".txt"), Server.schemaName, Server.tableName, Server.startPkId, Server.endPkId);
-//                Thread.sleep(100);
-                channel.writeAndFlush(Unpooled.wrappedBuffer(String.format("file %s.txt read done!", j).getBytes())).addListener(new ChannelFutureListener() {
-                    @Override
-                    public void operationComplete(ChannelFuture future) throws Exception {
-                        logger.info("sent read success!");
-                    }
-                });
+                Thread t = new Thread(new MyRunnable(j));
+                threadList.add(t);
+                t.start();
+            }
+
+            for (Thread t :
+                    threadList) {
+                t.join();
             }
 
             // 发送结束标志
@@ -135,5 +138,26 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 
         return "".getBytes();
 
+    }
+
+    class MyRunnable implements Runnable {
+
+        private int i;
+
+        public MyRunnable(int i) {
+            this.i = i;
+        }
+
+        @Override
+        public void run() {
+            FileReader.readOneFile(new File(Constants.DATA_HOME + "/" + i + ".txt"), Server.schemaName, Server.tableName, Server.startPkId, Server.endPkId);
+//                Thread.sleep(100);
+            channel.writeAndFlush(Unpooled.wrappedBuffer(String.format("file %s.txt read done!", i).getBytes())).addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    logger.info("sent read success!");
+                }
+            });
+        }
     }
 }
