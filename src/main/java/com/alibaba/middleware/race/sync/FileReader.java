@@ -28,7 +28,7 @@ public class FileReader {
                     .getChannel()
                     .map(FileChannel.MapMode.READ_ONLY, 0, mapLength);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
         mappedByteBuffer.load();
 
@@ -40,8 +40,10 @@ public class FileReader {
         int totalOperationForStarAndEnd = 0;
         int totalOperationUpdatePK = 0;
         int totalOutToIn = 0;
+        logger.info("start read {}", fileName);
         for (; mappedByteBuffer.hasRemaining(); ) {
             if (mappedByteBuffer.get(mappedByteBuffer.position()) == '\0') { //尝试读取下一个byte（不改变position），”\0“为文件结束
+                logger.info("read done!");
                 break;
             }
 
