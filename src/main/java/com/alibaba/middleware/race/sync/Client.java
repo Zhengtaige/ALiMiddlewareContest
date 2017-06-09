@@ -31,6 +31,7 @@ public class Client {
         ip = "127.0.0.1"; //本地测试用本地ip就行了，提交上去估计要改一下
         Client client = new Client();
         client.connect(ip, port);
+        String a="NIMA";
 
     }
 
