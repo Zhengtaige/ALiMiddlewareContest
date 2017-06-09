@@ -61,8 +61,11 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
                     fileList) {
                 //输出目录下所有文件名和文件大小
                 logger.info("name: {}, size: {} MB", f.getName(), f.length() / 1024. / 1024.);
-                FileReader.readOneFile(f, Server.schemaName, Server.tableName, Server.startPkId, Server.endPkId);
-                channel.writeAndFlush(Unpooled.wrappedBuffer(String.format("file %s read done!", f.getName()).getBytes())).addListener(new ChannelFutureListener() {
+            }
+
+            for (int j = 1; j <= 10; j++) {
+                FileReader.readOneFile(new File(Constants.DATA_HOME + "/" + j + ".txt"), Server.schemaName, Server.tableName, Server.startPkId, Server.endPkId);
+                channel.writeAndFlush(Unpooled.wrappedBuffer(String.format("file %s.txt read done!", j).getBytes())).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
                         logger.info("sent read success!");
