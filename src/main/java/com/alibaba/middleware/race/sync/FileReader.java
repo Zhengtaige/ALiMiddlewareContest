@@ -78,21 +78,29 @@ public class FileReader {
             int keyBefore = readIntArea(mappedByteBuffer, 1);
             int keyAfter = readIntArea(mappedByteBuffer, 1);
 
-            //是否在区间内操作
-            boolean isIn = (keyAfter > start && keyAfter < end) || (keyBefore > start && keyBefore < end);
-            if (isIn) {
-                totalOperationForStarAndEnd++;
-                //删除或插入或更新主键的操作
-                if (keyBefore != keyAfter) {
-                    totalOperationUpdatePK++;
-                    //外面的主键跑到里面来了
-                    if ((keyBefore > end || keyBefore < start) && (keyAfter > start && keyAfter < end))
-                        totalOutToIn++;
-                    //区间内的主键变化
-                    if ((keyBefore < end && keyBefore > start) && (keyAfter > start && keyAfter < end))
-                        totalInArrangeKeyChange++;
-                }
-
+            //是否在区间内操作的统计
+            switch (operation) {
+                case 'I':
+                    if (keyAfter > start && keyAfter < end) {
+                        totalOperationForStarAndEnd++;
+                    }
+                    break;
+                case 'D':
+                    if (keyBefore > start && keyBefore < end) {
+                        totalOperationForStarAndEnd++;
+                    }
+                    break;
+                case 'U':
+                    if ((keyBefore > start && keyBefore < end) || (keyBefore > start && keyBefore < end)) {
+                        totalOperationForStarAndEnd++;
+                        if (keyBefore != keyAfter){ //改主键的行为
+                            totalOperationUpdatePK++;
+                            if ((keyBefore > end || keyBefore < start) && (keyAfter > start && keyAfter < end)) //外面跑里面
+                                totalOutToIn++;
+                            if ((keyBefore < end && keyBefore > start) && (keyAfter > start && keyAfter < end)) //里面改里面
+                                totalInArrangeKeyChange++;
+                        }
+                    }
             }
 
             switch (operation) {
