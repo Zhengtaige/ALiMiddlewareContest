@@ -1,15 +1,17 @@
-package com.alibaba.middleware.race.sync;
+package com.alibaba.middleware.race.sync.model;
 
 /**
  * Created by autulin on 6/9/17.
  */
-public class Colume {
-    public static Short INT_TYPE = 1;
-    public static Short STRING_TYPE = 1;
+public class Column {
+    public static byte INT_TYPE = 1;
+    public static byte STRING_TYPE = 1;
 
     private String name;
     private byte type;
     private boolean isPrimary;
+    private byte[] before;
+    private byte[] after;
 
     public String getName() {
         return name;
@@ -35,12 +37,30 @@ public class Colume {
         isPrimary = primary;
     }
 
+    public byte[] getBefore() {
+        return before;
+    }
+
+    public void setBefore(byte[] before) {
+        this.before = before;
+    }
+
+    public Object getAfter() {
+        return after;
+    }
+
+    public void setAfter(byte[] after) {
+        this.after = after;
+    }
+
     @Override
     public String toString() {
-        return "Colume{" +
+        return "Column{" +
                 "name='" + name + '\'' +
                 ", type=" + type +
                 ", isPrimary=" + isPrimary +
+                ", before=" + (before == null ? "null" : new String(before)) +
+                ", after=" + (after == null ? "null" : new String(after)) +
                 '}';
     }
 }

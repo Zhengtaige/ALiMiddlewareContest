@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race.sync;
 
+import com.alibaba.middleware.race.sync.model.Column;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,20 +112,20 @@ public class FileReader {
                     }
                     gotI = true;
 
-                    Colume colume = readColume(mappedByteBuffer);
-                    System.out.print(colume);
+                    Column column = readColume(mappedByteBuffer);
+                    System.out.print(column);
                     System.out.println("-value:" + new String(readArea(mappedByteBuffer, 2)));
-                    colume = readColume(mappedByteBuffer);
-                    System.out.print(colume);
+                    column = readColume(mappedByteBuffer);
+                    System.out.print(column);
                     System.out.println("-value:" + new String(readArea(mappedByteBuffer, 2)));
-                    colume = readColume(mappedByteBuffer);
-                    System.out.print(colume);
+                    column = readColume(mappedByteBuffer);
+                    System.out.print(column);
                     byte[] sex = readArea(mappedByteBuffer, 2);
                     System.out.print(new String(sex));
                     System.out.println(Arrays.equals(sex, new byte[]{-25, -108, -73}) ? 0 : 1); //男：0,女：1
 
-                    colume = readColume(mappedByteBuffer);
-                    System.out.print(colume);
+                    column = readColume(mappedByteBuffer);
+                    System.out.print(column);
                     System.out.println("-value:" + new String(readArea(mappedByteBuffer, 2)));
                     mappedByteBuffer.get(); //跳过最后的"|"
                     break;
@@ -165,7 +166,7 @@ public class FileReader {
     }
 
 
-    public static Colume readColume(MappedByteBuffer mappedByteBuffer) {
+    public static Column readColume(MappedByteBuffer mappedByteBuffer) {
 //        List<Byte> list = new ArrayList<>();
 //        Byte b;
 //        mappedByteBuffer.get(); //偏移一下
@@ -188,14 +189,14 @@ public class FileReader {
         } while (b != ':');
         byte[] bytes = new byte[i - 1];
         mappedByteBuffer.get(bytes);
-        Colume colume = new Colume();
-        colume.setName(new String(bytes));
+        Column column = new Column();
+        column.setName(new String(bytes));
 
         mappedByteBuffer.get(); //跳过“：”
-        colume.setType((byte) (mappedByteBuffer.get() - 48)); //数据里是ASCII码值
+        column.setType((byte) (mappedByteBuffer.get() - 48)); //数据里是ASCII码值
         mappedByteBuffer.get(); //跳过“：”
-        colume.setPrimary(mappedByteBuffer.get() - 48 == 1);
-        return colume;
+        column.setPrimary(mappedByteBuffer.get() - 48 == 1);
+        return column;
     }
 
 
