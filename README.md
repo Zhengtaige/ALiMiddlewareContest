@@ -4,6 +4,15 @@
     2.Server和Client在运行的时候均需要传参，在本地测试为了方便看开发那些参数就可以注释掉了
     3.上面所修改的内容比赛上传程序的时候一定要记得改回去
     4.一些便于理解的注释
+   
+TODO：
+
+1.保存表的结构。
+
+    HashMap<int ,HashMap<String, value>>  //<主键，《列名，列值》
+    ArrayList<String> //表的结构
+    HashMap<int,int> //<下一个赘述，最终主键>
+    
     
 Log地址，方便下载：
 
