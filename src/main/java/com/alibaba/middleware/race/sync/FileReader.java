@@ -10,7 +10,6 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -23,6 +22,7 @@ public class FileReader {
     public static void main(String[] args) throws IOException {
         readOneFile(new File(Constants.DATA_HOME + "/" + "1.txt"), "middleware5", "student", 100, 200);
     }
+
 
     public static void readOneFile(File file, String schema, String table, int start, int end) {
         Long startTime = System.currentTimeMillis();
@@ -165,7 +165,7 @@ public class FileReader {
     }
 
 
-    private static Colume readColume(MappedByteBuffer mappedByteBuffer) {
+    public static Colume readColume(MappedByteBuffer mappedByteBuffer) {
 //        List<Byte> list = new ArrayList<>();
 //        Byte b;
 //        mappedByteBuffer.get(); //偏移一下
@@ -206,7 +206,7 @@ public class FileReader {
      * @param needData         是否需要返回数据，设为false可直接到行末并不保存数据，以节省内存空间
      * @return 数据
      */
-    private static String readLine(MappedByteBuffer mappedByteBuffer, boolean needData) {
+    public static String readLine(MappedByteBuffer mappedByteBuffer, boolean needData) {
         int offset = mappedByteBuffer.position();
         byte b;
         int i = 0;
@@ -227,7 +227,7 @@ public class FileReader {
     }
 
 
-    private static int readIntArea(MappedByteBuffer mappedByteBuffer, int num) {
+    public static int readIntArea(MappedByteBuffer mappedByteBuffer, int num) {
         byte[] res = readArea(mappedByteBuffer, num);
         if (res[0] == 'N') { //NULL
             return -1;
@@ -236,7 +236,7 @@ public class FileReader {
         }
     }
 
-    private static String readStringArea(MappedByteBuffer mappedByteBuffer, int num) {
+    public static String readStringArea(MappedByteBuffer mappedByteBuffer, int num) {
         byte[] res = readArea(mappedByteBuffer, num);
         return new String(res);
     }
@@ -248,7 +248,7 @@ public class FileReader {
      * @param num              相对当前position的第几个区域
      * @return 区域内容
      */
-    private static byte[] readArea(MappedByteBuffer mappedByteBuffer, int num) {
+    public static byte[] readArea(MappedByteBuffer mappedByteBuffer, int num) {
         int lastAppearedPosition = 0;
         int currentAppearedPosition = 0;
         int appearedTimes = 0;
