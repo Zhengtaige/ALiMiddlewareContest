@@ -7,26 +7,17 @@ import java.util.List;
  * Created by autulin on 6/12/17.
  */
 public class Row {
-    //    private String schema;  其实不用存的
-//    private String table;
+    private boolean valid;
     private Character operation;
     private List<Column> columns = new LinkedList<>();
 
-//    public String getSchema() {
-//        return schema;
-//    }
-//
-//    public void setSchema(String schema) {
-//        this.schema = schema;
-//    }
-//
-//    public String getTable() {
-//        return table;
-//    }
-//
-//    public void setTable(String table) {
-//        this.table = table;
-//    }
+    public boolean isValid() {
+        return valid;
+    }
+
+    public void setValid(boolean valid) {
+        this.valid = valid;
+    }
 
     public Character getOperation() {
         return operation;

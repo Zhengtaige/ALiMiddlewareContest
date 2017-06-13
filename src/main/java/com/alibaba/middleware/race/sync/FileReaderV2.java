@@ -8,9 +8,12 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by autulin on 6/9/17.
@@ -37,18 +40,138 @@ public class FileReaderV2 {
         mappedByteBuffer.load();
 
         int offset = (int) file.length();
-        mappedByteBuffer.position(600); //跳过文件结尾的"\0"
+        mappedByteBuffer.position(offset); //跳过文件结尾的"\0"
 
-        System.out.println(readLine(mappedByteBuffer));
-        System.out.println(readLine(mappedByteBuffer));
-        System.out.println(readLine(mappedByteBuffer));
-        System.out.println(readLine(mappedByteBuffer));
-        System.out.println(readLine(mappedByteBuffer));
-        System.out.println(readLine(mappedByteBuffer));
+        String[] tableStructure = {"id", "first_name", "last_name", "sex", "score"};
+        HashMap<Integer, HashMap<String, byte[]>> finalMap = new HashMap<>();
+        HashMap<Integer, Integer> primaryKeyMap = new HashMap<>(); //key为要追溯的，value为最终值
+        for (int i = start + 1; i < end; i++) {
+            primaryKeyMap.put(i, i);
+        }
+
+        Row row;
+        while (primaryKeyMap.size() != 0) {
+            row = readLine(mappedByteBuffer, schema, table);
+            if (row == null) {
+                logger.error("文件读完了！");
+                break;
+            }
+            if (row.isValid()) {
+                doJob(row, finalMap, primaryKeyMap);
+            }
+        }
+
+        Long endTime = System.currentTimeMillis();
+        System.out.println("cost: " + (endTime - startTime));
+
+        getResult(finalMap, start, end, tableStructure);
+    }
+
+    private static void getResult(HashMap<Integer, HashMap<String, byte[]>> finalMap, int start, int end, String[] tableStructure) {
+        FileChannel channel;
+        try {
+            RandomAccessFile randomAccessFile = new RandomAccessFile(new File(Constants.RESULT_HOME + Constants.RESULT_FILE_NAME), "rw");
+            channel = randomAccessFile.getChannel();
+            for (int i = start + 1; i < end; i++) {
+                if (finalMap.containsKey(i)) {
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(256);
+                    HashMap<String, byte[]> colomns = finalMap.get(i);
+                    for (int j = 0; j < tableStructure.length - 1; j++) {
+                        byteBuffer.put(colomns.get(tableStructure[j]));
+                        byteBuffer.putChar('\t');
+                    }
+                    byteBuffer.put(colomns.get(tableStructure[tableStructure.length - 1]));
+                    byteBuffer.putChar('\n');
+                    byteBuffer.flip();
+                    System.out.println(byteBuffer.position() + "," + byteBuffer.limit());
+                    System.out.println(new String(byteBuffer.array()));
+                    while (byteBuffer.hasRemaining()) {
+                        channel.write(byteBuffer);
+                    }
+                }
+            }
+            channel.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
-    private static Row readLine(MappedByteBuffer buffer) {
+    private static void doJob(Row row, HashMap<Integer, HashMap<String, byte[]>> finalMap, HashMap<Integer, Integer> primaryKeyMap) {
+        int idBefore, idAfter;
+        List<Column> columns = row.getColumns();
+        switch (row.getOperation()) {
+            case 'I':
+                idAfter = Utils.bytes2Int(columns.get(0).getAfter());
+                if (primaryKeyMap.containsKey(idAfter)) {
+                    HashMap<String, byte[]> columnMap;
+                    int finalId = primaryKeyMap.get(idAfter);
+                    if (!finalMap.containsKey(finalId)) { //直接插入
+                        columnMap = new HashMap<>();
+                        for (Column c :
+                                columns) {
+                            columnMap.put(c.getName(), c.getAfter());
+                        }
+                        finalMap.put(finalId, columnMap);
+                    } else { //追溯到的插入
+                        columnMap = finalMap.get(finalId);
+                        for (Column c :
+                                columns) {
+                            if (!columnMap.containsKey(c.getName())) {
+                                columnMap.put(c.getName(), c.getAfter());
+                            }
+                        }
+
+                    }
+                    primaryKeyMap.remove(idAfter); //停止追溯该id
+                }
+                break;
+            case 'D':
+                idBefore = Utils.bytes2Int(columns.get(0).getBefore());
+                if (primaryKeyMap.containsKey(idBefore)) { //停止追溯该id
+                    primaryKeyMap.remove(idBefore);
+                }
+                break;
+            case 'U':
+                idAfter = Utils.bytes2Int(columns.get(0).getAfter());
+                idBefore = Utils.bytes2Int(columns.get(0).getBefore());
+
+                if (primaryKeyMap.containsKey(idAfter)) { //得到追溯的ID
+                    int id = primaryKeyMap.get(idAfter); //原始ID
+                    HashMap<String, byte[]> columnMap = finalMap.get(id);
+                    if (columnMap == null) { //从外面改进来
+                        columnMap = new HashMap<>();
+                        finalMap.put(id, columnMap);
+                    }
+                    for (Column c :
+                            columns) {
+                        if (!columnMap.containsKey(c.getName())) {
+                            columnMap.put(c.getName(), c.getAfter());
+                        }
+                    }
+
+                    if (primaryKeyMap.containsKey(idBefore)) { // 从范围里面改出去的，先删掉里面的追溯
+                        primaryKeyMap.remove(idBefore);
+                    }
+
+                    primaryKeyMap.remove(idAfter);
+                    if (columnMap.size() != 5) {
+                        primaryKeyMap.put(idBefore, id);  //向上追溯
+                    }
+
+                }
+
+
+        }
+
+    }
+
+//    static boolean i = false;
+//    static boolean u = false;
+//    static boolean d = false;
+
+    private static Row readLine(MappedByteBuffer buffer, String schema, String table) {
         if (buffer.position() == 0) {
             return null;
         }
@@ -56,50 +179,71 @@ public class FileReaderV2 {
         buffer.position(end - MIN_LENGTH); // 可以跳过一段
         int start = getLastEnterPostion(buffer);
 
-//        byte[] bytes;
         Row row;
         if (start == 0) {
-//            bytes = new byte[end - HEAD_LENGTH + 1]; //跳过|mysql-bin.000018470858532|1496828214000|
             buffer.position(start + HEAD_LENGTH - 1);
-//            buffer.get(bytes);
-            row = parseRow(buffer, "middleware5", "student", 0);
+            row = parseRow(buffer, schema, table);
             buffer.position(start);
         } else {
-//            bytes = new byte[end - start - HEAD_LENGTH];
             buffer.position(start + HEAD_LENGTH);
-//            buffer.get(bytes);
-            row = parseRow(buffer, "middleware5", "student", 0);
+            row = parseRow(buffer, schema, table);
             buffer.position(start + 1);
         }
+
+        //调试日志
+//        if (!i || !u || !d) {
+//            switch (row.getOperation()){
+//                case 'I':
+//                    if (!i){
+//                        System.out.println(row);
+//                    }
+//                    i = true;
+//                    break;
+//                case 'U':
+//                    if (!u) {
+//                        System.out.println(row);
+//                    }
+//                    u = true;
+//                    break;
+//                case 'D':
+//                    if (!d) {
+//                        System.out.println(row);
+//                    }
+//                    d = true;
+//                    break;
+//            }
+//        }
+
 
         return row;
     }
 
-    private static Row parseRow(MappedByteBuffer buffer, String schema, String table, int end) {
+    private static Row parseRow(MappedByteBuffer buffer, String schema, String table) {
         Row row = new Row();
         byte[] tSchema = FileReader.readArea(buffer, 1);
         if (!Arrays.equals(tSchema, schema.getBytes())) {
-            return null;
+            row.setValid(false);
+            return row;
         }
         byte[] tTable = FileReader.readArea(buffer, 1);
         if (!Arrays.equals(tTable, table.getBytes())) {
-            return null;
+            return row;
         }
+
+        row.setValid(true);
 
         buffer.get();
         byte operation = buffer.get();
         row.setOperation((char) operation);
 
-        readColunms(buffer, row, 0);
+        readColumns(buffer, row);
         return row;
     }
 
-    private static void readColunms(MappedByteBuffer buffer, Row row, int end) {
-        int position = buffer.position();
-
+    private static void readColumns(MappedByteBuffer buffer, Row row) {
+        int position;
         byte[] bytes;
 
-//        System.out.println(buffer.get());
         //id
         position = getNextSeperatorPosition(buffer, 2) + 1;
         buffer.position(position);
@@ -112,17 +256,20 @@ public class FileReaderV2 {
             bytes = new byte[areaEnd - position];
             buffer.get(bytes);
             id.setBefore(bytes);
+            buffer.get(); //偏移一位
+            position = buffer.position();
         } else {
             position = getNextSeperatorPosition(buffer, 1) + 1;
             buffer.position(position);
         }
-        areaEnd = getNextSeperatorPosition(buffer, 1);
+
         if (buffer.get(position) != 'N') {
+            areaEnd = getNextSeperatorPosition(buffer, 1);
             bytes = new byte[areaEnd - position];
             buffer.get(bytes);
             id.setAfter(bytes);
         } else {
-            position = getNextSeperatorPosition(buffer, 1) + 1;
+            position = getNextSeperatorPosition(buffer, 1);
             buffer.position(position);
         }
         row.getColumns().add(id);
@@ -228,11 +375,12 @@ public class FileReaderV2 {
             buffer.get(bytes);
             column.setBefore(bytes);
         }
+        buffer.position(end);
         start = getNextSeperatorPosition(buffer, 1) + 1;
-        end = getNextSeperatorPosition(buffer, 2);
         if (buffer.get(start) == 'N') {
             column.setAfter(null);
         } else {
+            end = getNextSeperatorPosition(buffer, 2);
             bytes = new byte[end - start];
             buffer.position(start);
             buffer.get(bytes);

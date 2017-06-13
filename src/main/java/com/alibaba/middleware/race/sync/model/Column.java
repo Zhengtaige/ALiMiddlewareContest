@@ -45,7 +45,7 @@ public class Column {
         this.before = before;
     }
 
-    public Object getAfter() {
+    public byte[] getAfter() {
         return after;
     }
 
