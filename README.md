@@ -25,7 +25,16 @@ Client端日志：http://middle2017.oss-cn-shanghai.aliyuncs.com/7721890v3f/clie
 Client端GC日志：http://middle2017.oss-cn-shanghai.aliyuncs.com/7721890v3f/gc_client.log
 
 
-
+        [2017-06-13 23:57:38.783] INFO  c.a.m.r.s.ServerDemoInHandler -name: 10.txt, size: 1202.9636697769165 MB
+        [2017-06-13 23:57:38.786] INFO  c.a.m.r.s.ServerDemoInHandler -name: 6.txt, size: 1145.3488311767578 MB
+        [2017-06-13 23:57:38.787] INFO  c.a.m.r.s.ServerDemoInHandler -name: 1.txt, size: 1405.8588943481445 MB
+        [2017-06-13 23:57:38.787] INFO  c.a.m.r.s.ServerDemoInHandler -name: 4.txt, size: 1140.4871520996094 MB
+        [2017-06-13 23:57:38.787] INFO  c.a.m.r.s.ServerDemoInHandler -name: 9.txt, size: 1474.3708171844482 MB
+        [2017-06-13 23:57:38.787] INFO  c.a.m.r.s.ServerDemoInHandler -name: 7.txt, size: 1113.5833015441895 MB
+        [2017-06-13 23:57:38.787] INFO  c.a.m.r.s.ServerDemoInHandler -name: 5.txt, size: 1204.9323377609253 MB
+        [2017-06-13 23:57:38.787] INFO  c.a.m.r.s.ServerDemoInHandler -name: 8.txt, size: 1118.6444416046143 MB
+        [2017-06-13 23:57:38.787] INFO  c.a.m.r.s.ServerDemoInHandler -name: 3.txt, size: 1129.5891952514648 MB
+        [2017-06-13 23:57:38.787] INFO  c.a.m.r.s.ServerDemoInHandler -name: 2.txt, size: 1127.2600135803223 MB
 
 
 
