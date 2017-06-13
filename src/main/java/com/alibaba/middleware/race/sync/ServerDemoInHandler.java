@@ -73,17 +73,24 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
                 logger.info("name: {}, size: {} MB", f.getName(), f.length() / 1024. / 1024.);
             }
 
-            List<Thread> threadList = new ArrayList<>();
+//            List<Thread> threadList = new ArrayList<>();
             for (int j = 1; j <= 10; j++) {
-                Thread t = new Thread(new MyRunnable(j));
-                threadList.add(t);
-                t.start();
+//                Thread t = new Thread(new MyRunnable(j));
+//                threadList.add(t);
+//                t.start();
+                FileReader.readOneFile(
+                        new File(Constants.DATA_HOME + "/" + j + ".txt"),
+                        Server.schemaName,
+                        Server.tableName,
+                        Server.startPkId,
+                        Server.endPkId
+                        );
             }
 
-            for (Thread t :
-                    threadList) {
-                t.join();
-            }
+//            for (Thread t :
+//                    threadList) {
+//                t.join();
+//            }
 
             // 发送结束标志
             channel.writeAndFlush(Unpooled.wrappedBuffer(new byte[]{-1})).addListener(new ChannelFutureListener() {

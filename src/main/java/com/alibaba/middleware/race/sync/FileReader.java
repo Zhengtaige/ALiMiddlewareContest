@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race.sync;
 
+import com.alibaba.middleware.race.sync.model.Column;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,6 +10,8 @@ import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by autulin on 6/7/17.
@@ -20,6 +23,7 @@ public class FileReader {
     public static void main(String[] args) throws IOException {
         readOneFile(new File(Constants.DATA_HOME + "/" + "1.txt"), "middleware5", "student", 100, 200);
     }
+
 
     public static void readOneFile(File file, String schema, String table, int start, int end) {
         Long startTime = System.currentTimeMillis();
@@ -41,6 +45,9 @@ public class FileReader {
         int totalOperationForStarAndEnd = 0;
         int totalOperationUpdatePK = 0;
         int totalOutToIn = 0;
+        int totalInArrangeKeyChange = 0;
+        Set<String> schemaSets = new HashSet<>();
+        Set<String> tableSets = new HashSet<>();
         logger.info("start read {}", file.getName());
         for (; mappedByteBuffer.hasRemaining(); ) {
             if (mappedByteBuffer.get(mappedByteBuffer.position()) == '\0') { //尝试读取下一个byte（不改变position），”\0“为文件结束
@@ -48,13 +55,17 @@ public class FileReader {
                 break;
             }
 
-            String tSchema = new String(readArea(mappedByteBuffer, 3));
+            String tSchema = readStringArea(mappedByteBuffer, 3);
+            if (!schemaSets.contains(tSchema)) {
+                schemaSets.add(tSchema);
+            }
             if (!schema.equals(tSchema)) {
                 readLine(mappedByteBuffer, false);
                 continue;
             }
 
-            String tTable = new String(readArea(mappedByteBuffer, 1));
+            String tTable = readStringArea(mappedByteBuffer, 1);
+            if (!tableSets.contains(tTable)) tableSets.add(tTable);
             if (!table.equals(tTable)) {
                 readLine(mappedByteBuffer, false);
                 continue;
@@ -68,17 +79,29 @@ public class FileReader {
             int keyBefore = readIntArea(mappedByteBuffer, 1);
             int keyAfter = readIntArea(mappedByteBuffer, 1);
 
-            //是否在区间内操作
-            boolean isIn = (keyAfter > start && keyAfter < end) || (keyBefore > start && keyBefore < end);
-            if (isIn) {
-                totalOperationForStarAndEnd++;
-                //删除或插入或更新主键的操作
-                if ((keyAfter == -1 || keyBefore == -1 || (keyBefore != keyAfter))) {
-                    totalOperationUpdatePK++;
-                }
-                //外面的主键跑到里面来了
-                if (keyBefore != -1 && (keyBefore > end || keyBefore < start) && (keyAfter > start && keyAfter < end))
-                    totalOutToIn++;
+            //是否在区间内操作的统计
+            switch (operation) {
+                case 'I':
+                    if (keyAfter > start && keyAfter < end) {
+                        totalOperationForStarAndEnd++;
+                    }
+                    break;
+                case 'D':
+                    if (keyBefore > start && keyBefore < end) {
+                        totalOperationForStarAndEnd++;
+                    }
+                    break;
+                case 'U':
+                    if ((keyBefore > start && keyBefore < end) || (keyBefore > start && keyBefore < end)) {
+                        totalOperationForStarAndEnd++;
+                        if (keyBefore != keyAfter){ //改主键的行为
+                            totalOperationUpdatePK++;
+                            if ((keyBefore > end || keyBefore < start) && (keyAfter > start && keyAfter < end)) //外面跑里面
+                                totalOutToIn++;
+                            if ((keyBefore < end && keyBefore > start) && (keyAfter > start && keyAfter < end)) //里面改里面
+                                totalInArrangeKeyChange++;
+                        }
+                    }
             }
 
             switch (operation) {
@@ -89,21 +112,22 @@ public class FileReader {
                     }
                     gotI = true;
 
-                    Colume colume = readColume(mappedByteBuffer);
-                    System.out.print(colume);
+                    Column column = readColume(mappedByteBuffer);
+                    System.out.print(column);
                     System.out.println("-value:" + new String(readArea(mappedByteBuffer, 2)));
-                    colume = readColume(mappedByteBuffer);
-                    System.out.print(colume);
+                    column = readColume(mappedByteBuffer);
+                    System.out.print(column);
                     System.out.println("-value:" + new String(readArea(mappedByteBuffer, 2)));
-                    colume = readColume(mappedByteBuffer);
-                    System.out.print(colume);
+                    column = readColume(mappedByteBuffer);
+                    System.out.print(column);
                     byte[] sex = readArea(mappedByteBuffer, 2);
                     System.out.print(new String(sex));
                     System.out.println(Arrays.equals(sex, new byte[]{-25, -108, -73}) ? 0 : 1); //男：0,女：1
 
-                    colume = readColume(mappedByteBuffer);
-                    System.out.print(colume);
+                    column = readColume(mappedByteBuffer);
+                    System.out.print(column);
                     System.out.println("-value:" + new String(readArea(mappedByteBuffer, 2)));
+                    mappedByteBuffer.get(); //跳过最后的"|"
                     break;
                 case 'U':
                     //正常情况
@@ -129,11 +153,20 @@ public class FileReader {
 
         Long endTime = System.currentTimeMillis();
 
-        logger.info(String.format("file(%s) cost: %s, operation num: %s, in arrange: %s, update primary key: %s, sao primaty key: %s", file.getName(), (endTime - startTime), totalOperationForTable, totalOperationForStarAndEnd, totalOperationUpdatePK, totalOutToIn));
+        logger.info(String.format("file(%s) cost: %s, operation num: %s, in arrange: %s, update primary key: %s, out->in primary key: %s, in->in primary key: %s",
+                file.getName(), (endTime - startTime), totalOperationForTable, totalOperationForStarAndEnd, totalOperationUpdatePK, totalOutToIn, totalInArrangeKeyChange));
+        logger.info("Schema num: {}", schemaSets.size());
+        for (String s : schemaSets) {
+            logger.info(s);
+        }
+        logger.info("Table num: {}", tableSets.size());
+        for (String s : tableSets) {
+            logger.info(s);
+        }
     }
 
 
-    private static Colume readColume(MappedByteBuffer mappedByteBuffer) {
+    public static Column readColume(MappedByteBuffer mappedByteBuffer) {
 //        List<Byte> list = new ArrayList<>();
 //        Byte b;
 //        mappedByteBuffer.get(); //偏移一下
@@ -156,14 +189,14 @@ public class FileReader {
         } while (b != ':');
         byte[] bytes = new byte[i - 1];
         mappedByteBuffer.get(bytes);
-        Colume colume = new Colume();
-        colume.setName(new String(bytes));
+        Column column = new Column();
+        column.setName(new String(bytes));
 
         mappedByteBuffer.get(); //跳过“：”
-        colume.setType((byte) (mappedByteBuffer.get() - 48)); //数据里是ASCII码值
+        column.setType((byte) (mappedByteBuffer.get() - 48)); //数据里是ASCII码值
         mappedByteBuffer.get(); //跳过“：”
-        colume.setPrimary(mappedByteBuffer.get() - 48 == 1);
-        return colume;
+        column.setPrimary(mappedByteBuffer.get() - 48 == 1);
+        return column;
     }
 
 
@@ -174,7 +207,7 @@ public class FileReader {
      * @param needData         是否需要返回数据，设为false可直接到行末并不保存数据，以节省内存空间
      * @return 数据
      */
-    private static String readLine(MappedByteBuffer mappedByteBuffer, boolean needData) {
+    public static String readLine(MappedByteBuffer mappedByteBuffer, boolean needData) {
         int offset = mappedByteBuffer.position();
         byte b;
         int i = 0;
@@ -195,7 +228,7 @@ public class FileReader {
     }
 
 
-    private static int readIntArea(MappedByteBuffer mappedByteBuffer, int num) {
+    public static int readIntArea(MappedByteBuffer mappedByteBuffer, int num) {
         byte[] res = readArea(mappedByteBuffer, num);
         if (res[0] == 'N') { //NULL
             return -1;
@@ -204,7 +237,7 @@ public class FileReader {
         }
     }
 
-    private static String readStringArea(MappedByteBuffer mappedByteBuffer, int num) {
+    public static String readStringArea(MappedByteBuffer mappedByteBuffer, int num) {
         byte[] res = readArea(mappedByteBuffer, num);
         return new String(res);
     }
@@ -216,7 +249,7 @@ public class FileReader {
      * @param num              相对当前position的第几个区域
      * @return 区域内容
      */
-    private static byte[] readArea(MappedByteBuffer mappedByteBuffer, int num) {
+    public static byte[] readArea(MappedByteBuffer mappedByteBuffer, int num) {
         int lastAppearedPosition = 0;
         int currentAppearedPosition = 0;
         int appearedTimes = 0;

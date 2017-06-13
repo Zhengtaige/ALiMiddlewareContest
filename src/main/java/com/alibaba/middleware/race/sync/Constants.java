@@ -28,9 +28,9 @@ interface Constants {
     // 赛题数据
     String DATA_HOME = "/home/admin/canal_data";
     // 结果文件目录(client端会用到)
-    String RESULT_HOME = "/home/admin/sync_results/${teamcode}";
+    String RESULT_HOME = "/home/admin/sync_results/7721890v3f/";
     // 中间结果目录（client和server都会用到）
-    String MIDDLE_HOME = "/home/admin/middle/${teamcode}";
+    String MIDDLE_HOME = "/home/admin/middle/7721890v3f/";
 
     //     结果文件的命名
     String RESULT_FILE_NAME = "Result.rs";
