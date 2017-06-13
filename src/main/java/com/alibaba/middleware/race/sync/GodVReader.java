@@ -78,10 +78,10 @@ public class GodVReader {
                     HashMap<String, byte[]> colomns = finalMap.get(i);
                     for (int j = 0; j < tableStructure.length - 1; j++) {
                         byteBuffer.put(colomns.get(tableStructure[j]));
-                        byteBuffer.putChar('\t');
+                        byteBuffer.put((byte) 9); // \t
                     }
                     byteBuffer.put(colomns.get(tableStructure[tableStructure.length - 1]));
-                    byteBuffer.putChar('\n');
+                    byteBuffer.put((byte) 10); // \n
                     byteBuffer.flip();
 //                    System.out.println(byteBuffer.position() + "," + byteBuffer.limit());
 //                    System.out.println(new String(byteBuffer.array()));
