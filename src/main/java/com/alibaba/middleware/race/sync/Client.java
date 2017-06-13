@@ -8,7 +8,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,8 +26,7 @@ public class Client {
         Logger logger = LoggerFactory.getLogger(Client.class);
         logger.info("Welcome");
         // 从args获取server端的ip
-//        ip = args[0];
-        ip = "127.0.0.1"; //本地测试用本地ip就行了，提交上去估计要改一下
+        ip = args[0];
         Client client = new Client();
         client.connect(ip, port);
         String a="NIMA";
@@ -63,7 +61,8 @@ public class Client {
 
                 @Override
                 public void initChannel(SocketChannel ch) throws Exception {
-                    ch.pipeline().addLast(new IdleStateHandler(10, 0, 0));
+                    // 超时时间在这里设定
+//                    ch.pipeline().addLast(new IdleStateHandler(10, 0, 0));
                     ch.pipeline().addLast(new ClientIdleEventHandler());
                     ch.pipeline().addLast(new ClientDemoInHandler());
                 }

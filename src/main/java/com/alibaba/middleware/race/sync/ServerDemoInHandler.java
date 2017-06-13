@@ -6,13 +6,24 @@ import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.nio.MappedByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 处理client端的请求 Created by wanshao on 2017/5/25.
  */
 public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 
+    private static final int mapLength = 1024 * 1024 * 1024; //1G
     private static Logger logger = LoggerFactory.getLogger(ServerDemoInHandler.class);
     int i = 0;
+    File[] fileList;
+    private Channel channel;
+    private boolean inited = false;
+    private MappedByteBuffer out;
+    private int offset = 0; //读到第几个byte
 
     /**
      * 根据channel
@@ -32,7 +43,8 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
         // 保存channel
-        Server.getMap().put(getIPString(ctx), ctx.channel());
+//        Server.getMap().put(getIPString(ctx), ctx.channel());
+        channel = ctx.channel();
 
         logger.info("com.alibaba.middleware.race.sync.ServerDemoInHandler.channelRead");
         ByteBuf result = (ByteBuf) msg;
@@ -41,23 +53,72 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
         result.readBytes(result1);
         String resultStr = new String(result1);
         // 接收并打印客户端的信息
-        System.out.println("com.alibaba.middleware.race.sync.Client said:" + resultStr);
+        logger.info("Client said:" + resultStr);
 
-        while (true) {
-            // 向客户端发送消息
-            final String message = (String) getMessage();
-            if (message != null) {
-                Channel channel = Server.getMap().get("127.0.0.1"); //客户端在本地运行所以只取本地
-                ByteBuf byteBuf = Unpooled.wrappedBuffer(message.getBytes());
-                channel.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
-
-                    @Override
-                    public void operationComplete(ChannelFuture future) throws Exception {
-                        logger.info("Server发送消息成功！(%s)", message);
-                    }
-                });
+        //发送执行参数
+        channel.writeAndFlush(Unpooled.wrappedBuffer(Server.params.getBytes())).addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                logger.info("send params success: " + Server.params);
             }
+        });
+
+
+        if (!inited) {
+            File file = new File(Constants.DATA_HOME);
+            fileList = file.listFiles();
+            for (File f :
+                    fileList) {
+                //输出目录下所有文件名和文件大小
+                logger.info("name: {}, size: {} MB", f.getName(), f.length() / 1024. / 1024.);
+            }
+
+            List<Thread> threadList = new ArrayList<>();
+            for (int j = 1; j <= 10; j++) {
+                Thread t = new Thread(new MyRunnable(j));
+                threadList.add(t);
+                t.start();
+            }
+
+            for (Thread t :
+                    threadList) {
+                t.join();
+            }
+
+            // 发送结束标志
+            channel.writeAndFlush(Unpooled.wrappedBuffer(new byte[]{-1})).addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    logger.info("sent close signal");
+                }
+            });
+            inited = true;
         }
+
+
+
+//        int i = 0;
+//        while (true) {
+////            System.out.println(i);
+//            // 向客户端发送消息
+//            final byte[] message = getMessage();
+//            if (message != null) {
+////                Channel channel = Server.getMap().get("127.0.0.1"); //客户端在本地运行所以只取本地
+//                ByteBuf byteBuf = Unpooled.wrappedBuffer(message);
+//                channel.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
+//
+//                    @Override
+//                    public void operationComplete(ChannelFuture future) throws Exception {
+//                        logger.info(String.format("sent %s bytes: " + new String(message), message.length));
+//                    }
+//                });
+//            }
+//
+//            if (i++ > 500) {
+//                ctx.close();
+//                break;
+//            }
+//        }
 
     }
 
@@ -66,13 +127,37 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
         ctx.flush();
     }
 
-    private Object getMessage() throws InterruptedException {
+    private byte[] getMessage() throws InterruptedException {
         // 模拟下数据生成，每隔5秒产生一条消息
-        Thread.sleep(5000);
+//        Thread.sleep(1000);
+//
+//        //比赛时在这里产生消息内容
+//
+//        return "message generated in ServerDemoInHandler. i:" + i++;
 
-        //比赛时在这里产生消息内容
 
-        return "message generated in ServerDemoInHandler. i:" + i++;
+        return "".getBytes();
 
+    }
+
+    class MyRunnable implements Runnable {
+
+        private int i;
+
+        public MyRunnable(int i) {
+            this.i = i;
+        }
+
+        @Override
+        public void run() {
+            FileReader.readOneFile(new File(Constants.DATA_HOME + "/" + i + ".txt"), Server.schemaName, Server.tableName, Server.startPkId, Server.endPkId);
+//                Thread.sleep(100);
+            channel.writeAndFlush(Unpooled.wrappedBuffer(String.format("file %s.txt read done!", i).getBytes())).addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    logger.info("sent read success!");
+                }
+            });
+        }
     }
 }
