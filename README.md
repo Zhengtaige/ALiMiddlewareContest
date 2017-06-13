@@ -357,6 +357,7 @@ $sudo time dd if=/dev/vda1  of=/dev/null bs=8k count=1000000
 ```
 
 3. CPU信息? 
+
 ```
 processor	: 0
 vendor_id	: GenuineIntel
@@ -462,7 +463,7 @@ cache_alignment	: 64
 address sizes	: 46 bits physical, 48 bits virtual
 power management:
 ```
-答：24核 2.2GHz
+
 
 4. 最大文件打开数是多少？
 
