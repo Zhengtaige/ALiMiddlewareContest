@@ -78,7 +78,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
                     Server.endPkId);
 
 //            List<Thread> threadList = new ArrayList<>();
-            for (int j = 1; j <= 10; j++) {
+            for (int j = 10; j > 0; j--) {
 //                Thread t = new Thread(new MyRunnable(j));
 //                threadList.add(t);
 //                t.start();
