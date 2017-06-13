@@ -87,7 +87,7 @@ public class ClientDemoInHandler extends ChannelInboundHandlerAdapter {
     // 连接成功后，向server发送消息
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        logger.info("com.alibaba.middleware.race.sync.ClientDemoInHandler.channelActive");
+        logger.info("active, send hello to server!");
         String msg = "I am prepared to receive messages";
         ByteBuf encoded = ctx.alloc().buffer(4 * msg.length());
         encoded.writeBytes(msg.getBytes());

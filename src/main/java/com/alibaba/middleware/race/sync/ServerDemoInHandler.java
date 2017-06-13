@@ -63,13 +63,13 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 
 
         if (!inited) {
-            File file = new File(Constants.DATA_HOME);
-            fileList = file.listFiles();
-            for (File f :
-                    fileList) {
-                //输出目录下所有文件名和文件大小
-                logger.info("name: {}, size: {} MB", f.getName(), f.length() / 1024. / 1024.);
-            }
+//            File file = new File(Constants.DATA_HOME);
+//            fileList = file.listFiles();
+//            for (File f :
+//                    fileList) {
+//                //输出目录下所有文件名和文件大小
+//                logger.info("name: {}, size: {} MB", f.getName(), f.length() / 1024. / 1024.);
+//            }
 
             GodVReader reader = GodVReader.getINSTANCE(
                     Server.schemaName,
@@ -78,7 +78,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
                     Server.endPkId);
 
 //            List<Thread> threadList = new ArrayList<>();
-            for (int j = 10; j > 0; j--) {
+            for (int j = 1; j > 0; j--) {
 //                Thread t = new Thread(new MyRunnable(j));
 //                threadList.add(t);
 //                t.start();

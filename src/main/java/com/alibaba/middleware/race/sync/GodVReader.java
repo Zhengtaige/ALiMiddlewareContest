@@ -41,7 +41,8 @@ public class GodVReader {
     }
 
     public static void main(String[] args) {
-        getINSTANCE("middleware5", "student", 100, 200).doRead(new File(Constants.DATA_HOME + "/" + "1.txt"));
+        getINSTANCE("middleware5", "student", 100, 1000000).doRead(new File(Constants.DATA_HOME + "/" + "1.txt"));
+        getINSTANCE("middleware5", "student", 100, 1000000).getResult();
     }
 
     public void doRead(File file) {
@@ -83,7 +84,7 @@ public class GodVReader {
     }
 
     public byte[] getResultBytes() {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(7 * 1024 * 1024); //考虑到100w条
         for (long i = start + 1; i < end; i++) {
             if (finalMap.containsKey(i)) {
                 HashMap<String, byte[]> colomns = finalMap.get(i);
@@ -262,6 +263,7 @@ public class GodVReader {
         }
         byte[] tTable = FileReader.readArea(buffer, 1);
         if (!Arrays.equals(tTable, table.getBytes())) {
+            row.setValid(false);
             return row;
         }
 
@@ -424,16 +426,6 @@ public class GodVReader {
         return column;
     }
 
-//    private static void godV(MappedByteBuffer buffer, String schema, String table) {
-//        int end = buffer.position();
-//        int t = getLastSeperatorPosition(buffer);
-//        List<Column> columns = new LinkedList<>();
-//        while (true) {
-//            if (buffer.get(end - 1) == 'L') {
-//
-//            }
-//        }
-//    }
 
 
     /**
