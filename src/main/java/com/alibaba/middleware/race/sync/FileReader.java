@@ -21,7 +21,7 @@ public class FileReader {
     private static Logger logger = LoggerFactory.getLogger(FileReader.class);
 
     public static void main(String[] args) throws IOException {
-        readOneFile(new File(Constants.DATA_HOME + "/" + "1.txt"), "middleware5", "student", 100, 200);
+        analasiseKey(new File(Constants.DATA_HOME + "/" + "1.txt"), "middleware5", "student", 100, 200);
     }
 
 
@@ -162,6 +162,58 @@ public class FileReader {
         logger.info("Table num: {}", tableSets.size());
         for (String s : tableSets) {
             logger.info(s);
+        }
+    }
+
+
+    public static void analasiseKey(File file, String schema, String table, int start, int end) {
+        Long startTime = System.currentTimeMillis();
+        MappedByteBuffer mappedByteBuffer = null;
+        try {
+            mappedByteBuffer = new RandomAccessFile(file, "r")
+                    .getChannel()
+                    .map(FileChannel.MapMode.READ_ONLY, 0, file.length());
+        } catch (IOException e) {
+            logger.error(e.toString());
+        }
+        mappedByteBuffer.load();
+
+        int destination = 117;
+        for (; mappedByteBuffer.hasRemaining(); ) {
+            if (mappedByteBuffer.get(mappedByteBuffer.position()) == '\0') { //尝试读取下一个byte（不改变position），”\0“为文件结束
+                logger.info("read done!");
+                break;
+            }
+
+            String tSchema = readStringArea(mappedByteBuffer, 3);
+            if (!schema.equals(tSchema)) {
+                readLine(mappedByteBuffer, false);
+                continue;
+            }
+
+            String tTable = readStringArea(mappedByteBuffer, 1);
+            if (!table.equals(tTable)) {
+                readLine(mappedByteBuffer, false);
+                continue;
+            }
+
+            byte operation = readArea(mappedByteBuffer, 1)[0];
+
+            //先把主键读了
+            readColume(mappedByteBuffer);
+            //修改主键的情况
+            int keyBefore = readIntArea(mappedByteBuffer, 1);
+            int keyAfter = readIntArea(mappedByteBuffer, 1);
+
+            if (keyBefore == destination) {
+                System.out.println(keyBefore + "->" + keyAfter);
+                System.out.println(readLine(mappedByteBuffer, true));
+                if (keyAfter == -1) return;
+                destination = keyAfter;
+            } else if (keyAfter == destination) {
+                System.out.println(keyBefore + "->" + keyAfter);
+                System.out.println(readLine(mappedByteBuffer, true));
+            }
         }
     }
 

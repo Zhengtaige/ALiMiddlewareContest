@@ -18,8 +18,8 @@ import java.util.List;
 /**
  * Created by autulin on 6/9/17.
  */
-public class FileReaderV2 {
-    private static Logger logger = LoggerFactory.getLogger(FileReaderV2.class);
+public class GodVReader {
+    private static Logger logger = LoggerFactory.getLogger(GodVReader.class);
     private static int HEAD_LENGTH = 41; //用于读取时跳过
     private static int MIN_LENGTH = 75;
 
@@ -43,9 +43,9 @@ public class FileReaderV2 {
         mappedByteBuffer.position(offset); //跳过文件结尾的"\0"
 
         String[] tableStructure = {"id", "first_name", "last_name", "sex", "score"};
-        HashMap<Integer, HashMap<String, byte[]>> finalMap = new HashMap<>();
-        HashMap<Integer, Integer> primaryKeyMap = new HashMap<>(); //key为要追溯的，value为最终值
-        for (int i = start + 1; i < end; i++) {
+        HashMap<Long, HashMap<String, byte[]>> finalMap = new HashMap<>();
+        HashMap<Long, Long> primaryKeyMap = new HashMap<>(); //key为要追溯的，value为最终值
+        for (long i = start + 1; i < end; i++) {
             primaryKeyMap.put(i, i);
         }
 
@@ -67,12 +67,12 @@ public class FileReaderV2 {
         getResult(finalMap, start, end, tableStructure);
     }
 
-    private static void getResult(HashMap<Integer, HashMap<String, byte[]>> finalMap, int start, int end, String[] tableStructure) {
+    private static void getResult(HashMap<Long, HashMap<String, byte[]>> finalMap, int start, int end, String[] tableStructure) {
         FileChannel channel;
         try {
             RandomAccessFile randomAccessFile = new RandomAccessFile(new File(Constants.RESULT_HOME + Constants.RESULT_FILE_NAME), "rw");
             channel = randomAccessFile.getChannel();
-            for (int i = start + 1; i < end; i++) {
+            for (long i = start + 1; i < end; i++) {
                 if (finalMap.containsKey(i)) {
                     ByteBuffer byteBuffer = ByteBuffer.allocate(256);
                     HashMap<String, byte[]> colomns = finalMap.get(i);
@@ -83,8 +83,8 @@ public class FileReaderV2 {
                     byteBuffer.put(colomns.get(tableStructure[tableStructure.length - 1]));
                     byteBuffer.putChar('\n');
                     byteBuffer.flip();
-                    System.out.println(byteBuffer.position() + "," + byteBuffer.limit());
-                    System.out.println(new String(byteBuffer.array()));
+//                    System.out.println(byteBuffer.position() + "," + byteBuffer.limit());
+//                    System.out.println(new String(byteBuffer.array()));
                     while (byteBuffer.hasRemaining()) {
                         channel.write(byteBuffer);
                     }
@@ -98,15 +98,15 @@ public class FileReaderV2 {
 
     }
 
-    private static void doJob(Row row, HashMap<Integer, HashMap<String, byte[]>> finalMap, HashMap<Integer, Integer> primaryKeyMap) {
-        int idBefore, idAfter;
+    private static void doJob(Row row, HashMap<Long, HashMap<String, byte[]>> finalMap, HashMap<Long, Long> primaryKeyMap) {
+        long idBefore, idAfter;
         List<Column> columns = row.getColumns();
         switch (row.getOperation()) {
             case 'I':
-                idAfter = Utils.bytes2Int(columns.get(0).getAfter());
+                idAfter = Utils.bytes2Long(columns.get(0).getAfter());
                 if (primaryKeyMap.containsKey(idAfter)) {
                     HashMap<String, byte[]> columnMap;
-                    int finalId = primaryKeyMap.get(idAfter);
+                    long finalId = primaryKeyMap.get(idAfter);
                     if (!finalMap.containsKey(finalId)) { //直接插入
                         columnMap = new HashMap<>();
                         for (Column c :
@@ -118,29 +118,33 @@ public class FileReaderV2 {
                         columnMap = finalMap.get(finalId);
                         for (Column c :
                                 columns) {
-                            if (!columnMap.containsKey(c.getName())) {
+                            if (!columnMap.containsKey(c.getName())) { //只插入不包含的列，既然是insert，那么这次肯定会插满的
                                 columnMap.put(c.getName(), c.getAfter());
                             }
                         }
-
                     }
                     primaryKeyMap.remove(idAfter); //停止追溯该id
                 }
                 break;
             case 'D':
-                idBefore = Utils.bytes2Int(columns.get(0).getBefore());
+                idBefore = Utils.bytes2Long(columns.get(0).getBefore());
                 if (primaryKeyMap.containsKey(idBefore)) { //停止追溯该id
                     primaryKeyMap.remove(idBefore);
                 }
                 break;
             case 'U':
-                idAfter = Utils.bytes2Int(columns.get(0).getAfter());
-                idBefore = Utils.bytes2Int(columns.get(0).getBefore());
+                idAfter = Utils.bytes2Long(columns.get(0).getAfter());
+                idBefore = Utils.bytes2Long(columns.get(0).getBefore());
 
+                if (primaryKeyMap.containsKey(idBefore)
+                        && !primaryKeyMap.containsKey(idAfter)) { // 从范围里面改出去的，先删掉里面的追溯
+                    primaryKeyMap.remove(idBefore);
+                    break;
+                }
                 if (primaryKeyMap.containsKey(idAfter)) { //得到追溯的ID
-                    int id = primaryKeyMap.get(idAfter); //原始ID
+                    long id = primaryKeyMap.get(idAfter); //原始ID
                     HashMap<String, byte[]> columnMap = finalMap.get(id);
-                    if (columnMap == null) { //从外面改进来
+                    if (columnMap == null) { //从外面改进来, 或者里面改里面
                         columnMap = new HashMap<>();
                         finalMap.put(id, columnMap);
                     }
@@ -151,11 +155,8 @@ public class FileReaderV2 {
                         }
                     }
 
-                    if (primaryKeyMap.containsKey(idBefore)) { // 从范围里面改出去的，先删掉里面的追溯
-                        primaryKeyMap.remove(idBefore);
-                    }
 
-                    primaryKeyMap.remove(idAfter);
+                    primaryKeyMap.remove(idAfter); //默认处理后删掉当前id，如果列没有更新完就向上追溯
                     if (columnMap.size() != 5) {
                         primaryKeyMap.put(idBefore, id);  //向上追溯
                     }
