@@ -8,8 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.MappedByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 处理client端的请求 Created by wanshao on 2017/5/25.
@@ -56,12 +54,12 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
         logger.info("Client said:" + resultStr);
 
         //发送执行参数
-        channel.writeAndFlush(Unpooled.wrappedBuffer(Server.params.getBytes())).addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                logger.info("send params success: " + Server.params);
-            }
-        });
+//        channel.writeAndFlush(Unpooled.wrappedBuffer(Server.params.getBytes())).addListener(new ChannelFutureListener() {
+//            @Override
+//            public void operationComplete(ChannelFuture future) throws Exception {
+//                logger.info("send params success: " + Server.params);
+//            }
+//        });
 
 
         if (!inited) {
@@ -73,18 +71,18 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
                 logger.info("name: {}, size: {} MB", f.getName(), f.length() / 1024. / 1024.);
             }
 
+            GodVReader reader = GodVReader.getINSTANCE(
+                    Server.schemaName,
+                    Server.tableName,
+                    Server.startPkId,
+                    Server.endPkId);
+
 //            List<Thread> threadList = new ArrayList<>();
             for (int j = 1; j <= 10; j++) {
 //                Thread t = new Thread(new MyRunnable(j));
 //                threadList.add(t);
 //                t.start();
-                FileReader.readOneFile(
-                        new File(Constants.DATA_HOME + "/" + j + ".txt"),
-                        Server.schemaName,
-                        Server.tableName,
-                        Server.startPkId,
-                        Server.endPkId
-                        );
+                reader.doRead(new File(Constants.DATA_HOME + "/" + j + ".txt"));
             }
 
 //            for (Thread t :
@@ -92,13 +90,20 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 //                t.join();
 //            }
 
-            // 发送结束标志
-            channel.writeAndFlush(Unpooled.wrappedBuffer(new byte[]{-1})).addListener(new ChannelFutureListener() {
+            channel.writeAndFlush(Unpooled.wrappedBuffer(reader.getResultBytes())).addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {
-                    logger.info("sent close signal");
+                    logger.info("sent result");
                 }
             });
+
+            // 发送结束标志
+//            channel.writeAndFlush(Unpooled.wrappedBuffer(new byte[]{-1})).addListener(new ChannelFutureListener() {
+//                @Override
+//                public void operationComplete(ChannelFuture future) throws Exception {
+//                    logger.info("sent close signal");
+//                }
+//            });
             inited = true;
         }
 

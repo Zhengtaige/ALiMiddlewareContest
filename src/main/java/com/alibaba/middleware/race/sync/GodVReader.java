@@ -22,12 +22,29 @@ public class GodVReader {
     private static Logger logger = LoggerFactory.getLogger(GodVReader.class);
     private static int HEAD_LENGTH = 41; //用于读取时跳过
     private static int MIN_LENGTH = 75;
+    private static GodVReader INSTANCE = new GodVReader();
+    private String schema;
+    private String table;
+    private int start;
+    private int end;
+    private String[] tableStructure = {"id", "first_name", "last_name", "sex", "score"};
+    private HashMap<Long, HashMap<String, byte[]>> finalMap = new HashMap<>();
+    private HashMap<Long, Long> primaryKeyMap = new HashMap<>(); //key为要追溯的，value为最终值
 
-    public static void main(String[] args) {
-        doRead(new File(Constants.DATA_HOME + "/" + "1.txt"), "middleware5", "student", 100, 200);
+    public static GodVReader getINSTANCE(String schema, String table, int start, int end) {
+        INSTANCE.schema = schema;
+        INSTANCE.table = table;
+        INSTANCE.start = start;
+        INSTANCE.end = end;
+
+        return INSTANCE;
     }
 
-    public static void doRead(File file, String schema, String table, int start, int end) {
+    public static void main(String[] args) {
+        getINSTANCE("middleware5", "student", 100, 200).doRead(new File(Constants.DATA_HOME + "/" + "1.txt"));
+    }
+
+    public void doRead(File file) {
         Long startTime = System.currentTimeMillis();
         MappedByteBuffer mappedByteBuffer = null;
         try {
@@ -42,32 +59,50 @@ public class GodVReader {
         int offset = (int) file.length();
         mappedByteBuffer.position(offset); //跳过文件结尾的"\0"
 
-        String[] tableStructure = {"id", "first_name", "last_name", "sex", "score"};
-        HashMap<Long, HashMap<String, byte[]>> finalMap = new HashMap<>();
-        HashMap<Long, Long> primaryKeyMap = new HashMap<>(); //key为要追溯的，value为最终值
+
         for (long i = start + 1; i < end; i++) {
             primaryKeyMap.put(i, i);
         }
 
         Row row;
         while (primaryKeyMap.size() != 0) {
-            row = readLine(mappedByteBuffer, schema, table);
+            row = readLine(mappedByteBuffer);
             if (row == null) {
                 logger.error("文件读完了！");
                 break;
             }
             if (row.isValid()) {
-                doJob(row, finalMap, primaryKeyMap);
+                doJob(row);
             }
         }
 
         Long endTime = System.currentTimeMillis();
-        System.out.println("cost: " + (endTime - startTime));
+        logger.info("file[{}] read cost: {}", file.getName(), (endTime - startTime));
 
-        getResult(finalMap, start, end, tableStructure);
+//        getResult();
     }
 
-    private static void getResult(HashMap<Long, HashMap<String, byte[]>> finalMap, int start, int end, String[] tableStructure) {
+    public byte[] getResultBytes() {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+        for (long i = start + 1; i < end; i++) {
+            if (finalMap.containsKey(i)) {
+                HashMap<String, byte[]> colomns = finalMap.get(i);
+                for (int j = 0; j < tableStructure.length - 1; j++) {
+                    byteBuffer.put(colomns.get(tableStructure[j]));
+                    byteBuffer.put((byte) 9); // \t
+                }
+                byteBuffer.put(colomns.get(tableStructure[tableStructure.length - 1]));
+                byteBuffer.put((byte) 10); // \n
+
+            }
+        }
+        byteBuffer.flip();
+        byte[] bytes = new byte[byteBuffer.limit()];
+        byteBuffer.get(bytes);
+        return bytes;
+    }
+
+    public void getResult() {
         FileChannel channel;
         try {
             RandomAccessFile randomAccessFile = new RandomAccessFile(new File(Constants.RESULT_HOME + Constants.RESULT_FILE_NAME), "rw");
@@ -98,7 +133,7 @@ public class GodVReader {
 
     }
 
-    private static void doJob(Row row, HashMap<Long, HashMap<String, byte[]>> finalMap, HashMap<Long, Long> primaryKeyMap) {
+    private void doJob(Row row) {
         long idBefore, idAfter;
         List<Column> columns = row.getColumns();
         switch (row.getOperation()) {
@@ -172,7 +207,7 @@ public class GodVReader {
 //    static boolean u = false;
 //    static boolean d = false;
 
-    private static Row readLine(MappedByteBuffer buffer, String schema, String table) {
+    private Row readLine(MappedByteBuffer buffer) {
         if (buffer.position() == 0) {
             return null;
         }
@@ -183,11 +218,11 @@ public class GodVReader {
         Row row;
         if (start == 0) {
             buffer.position(start + HEAD_LENGTH - 1);
-            row = parseRow(buffer, schema, table);
+            row = parseRow(buffer);
             buffer.position(start);
         } else {
             buffer.position(start + HEAD_LENGTH);
-            row = parseRow(buffer, schema, table);
+            row = parseRow(buffer);
             buffer.position(start + 1);
         }
 
@@ -215,11 +250,10 @@ public class GodVReader {
 //            }
 //        }
 
-
         return row;
     }
 
-    private static Row parseRow(MappedByteBuffer buffer, String schema, String table) {
+    private Row parseRow(MappedByteBuffer buffer) {
         Row row = new Row();
         byte[] tSchema = FileReader.readArea(buffer, 1);
         if (!Arrays.equals(tSchema, schema.getBytes())) {
@@ -241,7 +275,7 @@ public class GodVReader {
         return row;
     }
 
-    private static void readColumns(MappedByteBuffer buffer, Row row) {
+    private void readColumns(MappedByteBuffer buffer, Row row) {
         int position;
         byte[] bytes;
 
@@ -340,7 +374,7 @@ public class GodVReader {
 
     }
 
-    private static Column readNextColumn(MappedByteBuffer buffer) {
+    private Column readNextColumn(MappedByteBuffer buffer) {
         Column column = new Column();
         buffer.get();
         column.setPrimary(false);
@@ -408,7 +442,7 @@ public class GodVReader {
      * @param buffer b
      * @return 换行副位置
      */
-    private static int getLastEnterPostion(MappedByteBuffer buffer) {
+    private int getLastEnterPostion(MappedByteBuffer buffer) {
         int position = buffer.position();
         while (position > 0 && buffer.get(--position) != '\n') {
         }
@@ -416,7 +450,7 @@ public class GodVReader {
     }
 
 
-    private static int getNextSeperatorPosition(MappedByteBuffer buffer, int num) {
+    private int getNextSeperatorPosition(MappedByteBuffer buffer, int num) {
         int position = buffer.position();
         int i = 0;
         while (true) {

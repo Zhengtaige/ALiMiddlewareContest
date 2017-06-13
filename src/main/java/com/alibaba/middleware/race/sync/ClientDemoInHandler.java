@@ -6,6 +6,12 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+
 /**
  * Created by wanshao on 2017/5/25.
  */
@@ -23,16 +29,35 @@ public class ClientDemoInHandler extends ChannelInboundHandlerAdapter {
     // 接收server端的消息，并打印出来
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-//        logger.info("com.alibaba.middleware.race.sync.ClientDemoInHandler.channelRead");
+        logger.info("revived msg.");
         ByteBuf result = (ByteBuf) msg;
         byte[] result1 = new byte[result.readableBytes()];
         result.readBytes(result1);
+        logger.info("msg length: {}", result1.length);
 
-        if (result1[0] == -1) {
-            logger.info("recieved close signal!");
+        FileChannel channel = null;
+        File file = new File(Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME);
+        try {
+            channel = new RandomAccessFile(file, "rw")
+                    .getChannel();
+
+            ByteBuffer byteBuffer = ByteBuffer.wrap(result1);
+//        while (byteBuffer.hasRemaining()){
+//
+//        }
+            channel.write(byteBuffer);
+            channel.close();
+        } catch (IOException e) {
+            logger.info(e.getMessage());
+            e.printStackTrace();
+        }
+
+
+//        if (result1[0] == -1) {
+//            logger.info("recieved close signal!");
             ctx.close();
-        } else {
-            String resultString = new String(result1);
+//        } else {
+//            String resultString = new String(result1);
 //        System.out.println();
 //        if (!recievedParams) { //第一次发送的参数
 //            String[] params = resultString.split(",");
@@ -45,10 +70,10 @@ public class ClientDemoInHandler extends ChannelInboundHandlerAdapter {
 ////            System.out.println(schema + table + start + end);
 //        } else { //之后发送的操作
             //进行重放操作
-            logger.info("Server said:" + resultString);
+//            logger.info("Server said:" + resultString);
 
 //        }
-        }
+//        }
 
 
 //        if (limit++ > 50) ctx.close(); //用于测试，收到消息大于xx次退出
