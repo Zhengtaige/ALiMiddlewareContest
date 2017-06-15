@@ -28,7 +28,7 @@ public class Client {
         // 从args获取server端的ip
         ip = args[0];
         Client client = new Client();
-        Thread.sleep(60000);
+        Thread.sleep(1200000);
         client.connect(ip, port);
 
 

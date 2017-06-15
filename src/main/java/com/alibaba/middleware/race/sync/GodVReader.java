@@ -19,10 +19,14 @@ import java.util.List;
  * Created by autulin on 6/9/17.
  */
 public class GodVReader {
+    static boolean i = false;
+    static boolean u = false;
+    static boolean d = false;
     private static Logger logger = LoggerFactory.getLogger(GodVReader.class);
     private static int HEAD_LENGTH = 41; //用于读取时跳过
     private static int MIN_LENGTH = 75;
     private static GodVReader INSTANCE = new GodVReader();
+    public boolean done = false;
     private String schema;
     private String table;
     private int start;
@@ -37,6 +41,13 @@ public class GodVReader {
         INSTANCE.start = start;
         INSTANCE.end = end;
 
+        return INSTANCE;
+    }
+
+    public static GodVReader getINSTANCE() {
+        if (INSTANCE.schema == null) { //没有初始化参数
+            return null;
+        }
         return INSTANCE;
     }
 
@@ -106,7 +117,7 @@ public class GodVReader {
     public void getResult() {
         FileChannel channel;
         try {
-            RandomAccessFile randomAccessFile = new RandomAccessFile(new File(Constants.RESULT_HOME + Constants.RESULT_FILE_NAME), "rw");
+            RandomAccessFile randomAccessFile = new RandomAccessFile(new File(Constants.MIDDLE_HOME + Constants.RESULT_FILE_NAME), "rw");
             channel = randomAccessFile.getChannel();
             for (long i = start + 1; i < end; i++) {
                 if (finalMap.containsKey(i)) {
@@ -204,10 +215,6 @@ public class GodVReader {
 
     }
 
-//    static boolean i = false;
-//    static boolean u = false;
-//    static boolean d = false;
-
     private Row readLine(MappedByteBuffer buffer) {
         if (buffer.position() == 0) {
             return null;
@@ -228,28 +235,28 @@ public class GodVReader {
         }
 
         //调试日志
-//        if (!i || !u || !d) {
-//            switch (row.getOperation()){
-//                case 'I':
-//                    if (!i){
-//                        System.out.println(row);
-//                    }
-//                    i = true;
-//                    break;
-//                case 'U':
-//                    if (!u) {
-//                        System.out.println(row);
-//                    }
-//                    u = true;
-//                    break;
-//                case 'D':
-//                    if (!d) {
-//                        System.out.println(row);
-//                    }
-//                    d = true;
-//                    break;
-//            }
-//        }
+        if (!i || !u || !d) {
+            switch (row.getOperation()) {
+                case 'I':
+                    if (!i) {
+                        logger.info(row.toString());
+                    }
+                    i = true;
+                    break;
+                case 'U':
+                    if (!u) {
+                        logger.info(row.toString());
+                    }
+                    u = true;
+                    break;
+                case 'D':
+                    if (!d) {
+                        logger.info(row.toString());
+                    }
+                    d = true;
+                    break;
+            }
+        }
 
         return row;
     }
@@ -452,5 +459,9 @@ public class GodVReader {
                 }
             }
         }
+    }
+
+    public HashMap<Long, HashMap<String, byte[]>> getFinalMap() {
+        return finalMap;
     }
 }

@@ -8,6 +8,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,11 +39,50 @@ public class Server {
     public static void main(String[] args) throws InterruptedException {
         initProperties();
         printInput(args);
-        Logger logger = LoggerFactory.getLogger(Server.class);
+        final Logger logger = LoggerFactory.getLogger(Server.class);
         Server server = new Server();
 //        for (int i = 0; i < 100; i++) { //防止后面的log被截断
-        logger.info("Server is running.... {}", params);
+        logger.info("Start Server.... {}", params);
 //        }
+
+        File file = new File(Constants.DATA_HOME);
+        File[] fileList = file.listFiles();
+        for (File f :
+                fileList) {
+            //输出目录下所有文件名和文件大小
+            logger.info("name: {}, size: {} MB", f.getName(), f.length() / 1024. / 1024.);
+        }
+
+        //直接开始读文件
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                logger.info("start FileReader");
+//                GodVReader reader = GodVReader.getINSTANCE(
+//                        Server.schemaName,
+//                        Server.tableName,
+//                        Server.startPkId,
+//                        Server.endPkId);
+                for (int j = 10; j > 0; j--) {
+//                    reader.doRead(new File(Constants.DATA_HOME + "/" + j + ".txt"));
+                    FileReader.readOneFile(new File(Constants.DATA_HOME + "/" + j + ".txt"), schemaName, tableName, startPkId, endPkId);
+                }
+//                reader.getResult();
+//                reader.done = true;
+
+                logger.info("start GodVReader");
+                GodVReader reader = GodVReader.getINSTANCE(
+                        Server.schemaName,
+                        Server.tableName,
+                        Server.startPkId,
+                        Server.endPkId);
+                for (int j = 10; j > 0; j--) {
+                    reader.doRead(new File(Constants.DATA_HOME + "/" + j + ".txt"));
+                }
+//                reader.getResult();
+//                reader.done = true;
+            }
+        }).start();
 
         server.startServer(5527);
     }
@@ -81,6 +121,7 @@ public class Server {
 
 
     private void startServer(int port) throws InterruptedException {
+
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {

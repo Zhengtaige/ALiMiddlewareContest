@@ -1,12 +1,16 @@
 package com.alibaba.middleware.race.sync;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.stream.ChunkedFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 
 /**
@@ -18,7 +22,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
     private static Logger logger = LoggerFactory.getLogger(ServerDemoInHandler.class);
     int i = 0;
     File[] fileList;
-    private Channel channel;
+    //    private Channel channel;
     private boolean inited = false;
     private MappedByteBuffer out;
     private int offset = 0; //读到第几个byte
@@ -42,9 +46,10 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 
         // 保存channel
 //        Server.getMap().put(getIPString(ctx), ctx.channel());
-        channel = ctx.channel();
+//        channel = ctx.channel();
 
-        logger.info("com.alibaba.middleware.race.sync.ServerDemoInHandler.channelRead");
+
+        logger.info("channelRead  - Server recieve message");
         ByteBuf result = (ByteBuf) msg;
         byte[] result1 = new byte[result.readableBytes()];
         // msg中存储的是ByteBuf类型的数据，把数据读取到byte[]中
@@ -60,42 +65,26 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 //                logger.info("send params success: " + Server.params);
 //            }
 //        });
-
+        GodVReader reader = GodVReader.getINSTANCE();
+        while (!reader.done) {
+            Thread.sleep(100);
+        }
 
         if (!inited) {
-//            File file = new File(Constants.DATA_HOME);
-//            fileList = file.listFiles();
-//            for (File f :
-//                    fileList) {
-//                //输出目录下所有文件名和文件大小
-//                logger.info("name: {}, size: {} MB", f.getName(), f.length() / 1024. / 1024.);
-//            }
-
-            GodVReader reader = GodVReader.getINSTANCE(
-                    Server.schemaName,
-                    Server.tableName,
-                    Server.startPkId,
-                    Server.endPkId);
-
-//            List<Thread> threadList = new ArrayList<>();
-            for (int j = 1; j > 0; j--) {
-//                Thread t = new Thread(new MyRunnable(j));
-//                threadList.add(t);
-//                t.start();
-                reader.doRead(new File(Constants.DATA_HOME + "/" + j + ".txt"));
+            logger.info("start send file");
+            RandomAccessFile randomAccessFile;
+            try {
+                randomAccessFile = new RandomAccessFile(Constants.MIDDLE_HOME + Constants.RESULT_FILE_NAME, "rw");
+                ChunkedFile chunkedFile = new ChunkedFile(randomAccessFile);
+                ctx.writeAndFlush(chunkedFile).addListener(new ChannelFutureListener() {
+                    @Override
+                    public void operationComplete(ChannelFuture future) throws Exception {
+                        future.channel().close();
+                    }
+                });
+            } catch (Exception e) {
+                logger.error(e.getMessage());
             }
-
-//            for (Thread t :
-//                    threadList) {
-//                t.join();
-//            }
-
-            channel.writeAndFlush(Unpooled.wrappedBuffer(reader.getResultBytes())).addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(ChannelFuture future) throws Exception {
-                    logger.info("sent result");
-                }
-            });
 
             // 发送结束标志
 //            channel.writeAndFlush(Unpooled.wrappedBuffer(new byte[]{-1})).addListener(new ChannelFutureListener() {
@@ -152,7 +141,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 
     }
 
-    class MyRunnable implements Runnable {
+    /*class MyRunnable implements Runnable {
 
         private int i;
 
@@ -171,5 +160,10 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
                 }
             });
         }
+    }*/
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        logger.info("Server({}) channelActive.", ctx.channel().localAddress().toString());
     }
 }
