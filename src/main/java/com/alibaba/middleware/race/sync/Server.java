@@ -60,15 +60,17 @@ public class Server {
             @Override
             public void run() {
                 logger.info("start FileReader");
-                for (int j = 1; j > 0; j--) {
+                for (int j = 10; j > 0; j--) {
+                    long start = System.currentTimeMillis();
                     FileReader.readOneFile(new File(Constants.DATA_HOME + "/" + j + ".txt"), schemaName, tableName, startPkId, endPkId);
+                    logger.info("FileReader read file{}.txt cost", j, System.currentTimeMillis() - start);
                 }
 
                 logger.info("start GodVReader");
                 GodVReader reader = GodVReader.getINSTANCE(
                         Server.startPkId,
                         Server.endPkId);
-                for (int j = 1; j > 0; j--) {
+                for (int j = 10; j > 0; j--) {
                     reader.doRead(j + ".txt");
                 }
                 reader.getResult();
