@@ -10,7 +10,6 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -47,24 +46,24 @@ public class Server {
         logger.info("Start Server.... {}", params);
 //        }
 
-        File file = new File(Constants.DATA_HOME);
-        File[] fileList = file.listFiles();
-        for (File f :
-                fileList) {
-            //输出目录下所有文件名和文件大小
-            logger.info("name: {}, size: {} MB", f.getName(), f.length() / 1024. / 1024.);
-        }
+//        File file = new File(Constants.DATA_HOME);
+//        File[] fileList = file.listFiles();
+//        for (File f :
+//                fileList) {
+//            //输出目录下所有文件名和文件大小
+//            logger.info("name: {}, size: {} MB", f.getName(), f.length() / 1024. / 1024.);
+//        }
 
         //直接开始读文件
         new Thread(new Runnable() {
             @Override
             public void run() {
-                logger.info("start FileReader");
-                for (int j = 10; j > 0; j--) {
-                    long start = System.currentTimeMillis();
-                    FileReader.readOneFile(new File(Constants.DATA_HOME + "/" + j + ".txt"), schemaName, tableName, startPkId, endPkId);
-                    logger.info("FileReader read file{}.txt cost", j, System.currentTimeMillis() - start);
-                }
+//                logger.info("start FileReader");
+//                for (int j = 10; j > 0; j--) {
+//                    long start = System.currentTimeMillis();
+//                    FileReader.readOneFile(new File(Constants.DATA_HOME + "/" + j + ".txt"), schemaName, tableName, startPkId, endPkId);
+//                    logger.info("FileReader read file{}.txt cost {}", j, System.currentTimeMillis() - start);
+//                }
 
                 logger.info("start GodVReader");
                 GodVReader reader = GodVReader.getINSTANCE(
