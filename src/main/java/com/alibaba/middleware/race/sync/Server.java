@@ -5,6 +5,8 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.bytes.ByteArrayEncoder;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,29 +60,19 @@ public class Server {
             @Override
             public void run() {
                 logger.info("start FileReader");
-//                GodVReader reader = GodVReader.getINSTANCE(
-//                        Server.schemaName,
-//                        Server.tableName,
-//                        Server.startPkId,
-//                        Server.endPkId);
-                for (int j = 10; j > 0; j--) {
-//                    reader.doRead(new File(Constants.DATA_HOME + "/" + j + ".txt"));
+                for (int j = 1; j > 0; j--) {
                     FileReader.readOneFile(new File(Constants.DATA_HOME + "/" + j + ".txt"), schemaName, tableName, startPkId, endPkId);
                 }
-//                reader.getResult();
-//                reader.done = true;
 
                 logger.info("start GodVReader");
                 GodVReader reader = GodVReader.getINSTANCE(
-                        Server.schemaName,
-                        Server.tableName,
                         Server.startPkId,
                         Server.endPkId);
-                for (int j = 10; j > 0; j--) {
-                    reader.doRead(new File(Constants.DATA_HOME + "/" + j + ".txt"));
+                for (int j = 1; j > 0; j--) {
+                    reader.doRead(j + ".txt");
                 }
-//                reader.getResult();
-//                reader.done = true;
+                reader.getResult();
+                reader.done = true;
             }
         }).start();
 
@@ -133,11 +125,14 @@ public class Server {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
                         // 注册handler
+                        ch.pipeline().addLast(new ByteArrayEncoder());
+                        ch.pipeline().addLast(new ChunkedWriteHandler());
                         ch.pipeline().addLast(new ServerDemoInHandler());
                         // ch.pipeline().addLast(new ServerDemoOutHandler());
                     }
                 })
-                .option(ChannelOption.SO_BACKLOG, 128)
+//                    .childHandler(new ServerDemoInHandler())
+                    .option(ChannelOption.SO_BACKLOG, 1024)
                 .childOption(ChannelOption.SO_KEEPALIVE, true);
 
             ChannelFuture f = b.bind(port).sync();

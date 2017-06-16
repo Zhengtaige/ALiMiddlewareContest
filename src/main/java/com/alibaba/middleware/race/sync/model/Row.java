@@ -7,17 +7,17 @@ import java.util.List;
  * Created by autulin on 6/12/17.
  */
 public class Row {
-    private boolean valid;
+    //    private boolean valid;
     private Character operation;
     private List<Column> columns = new LinkedList<>();
 
-    public boolean isValid() {
-        return valid;
-    }
-
-    public void setValid(boolean valid) {
-        this.valid = valid;
-    }
+//    public boolean isValid() {
+//        return valid;
+//    }
+//
+//    public void setValid(boolean valid) {
+//        this.valid = valid;
+//    }
 
     public Character getOperation() {
         return operation;

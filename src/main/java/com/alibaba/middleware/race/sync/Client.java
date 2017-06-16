@@ -8,6 +8,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.bytes.ByteArrayEncoder;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +30,7 @@ public class Client {
         // 从args获取server端的ip
         ip = args[0];
         Client client = new Client();
-        Thread.sleep(1200000);
+//        Thread.sleep(1200000);
         client.connect(ip, port);
 
 
@@ -64,6 +66,8 @@ public class Client {
                 public void initChannel(SocketChannel ch) throws Exception {
                     // 超时时间在这里设定
 //                    ch.pipeline().addLast(new IdleStateHandler(10, 0, 0));
+                    ch.pipeline().addLast(new ByteArrayEncoder());
+                    ch.pipeline().addLast(new ChunkedWriteHandler());
                     ch.pipeline().addLast(new ClientIdleEventHandler());
                     ch.pipeline().addLast(new ClientDemoInHandler());
                 }

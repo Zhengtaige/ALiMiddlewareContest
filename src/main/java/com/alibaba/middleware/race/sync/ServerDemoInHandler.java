@@ -1,10 +1,7 @@
 package com.alibaba.middleware.race.sync;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.*;
 import io.netty.handler.stream.ChunkedFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +19,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
     private static Logger logger = LoggerFactory.getLogger(ServerDemoInHandler.class);
     int i = 0;
     File[] fileList;
-    //    private Channel channel;
+    //    private Channel fileChannel;
     private boolean inited = false;
     private MappedByteBuffer out;
     private int offset = 0; //读到第几个byte
@@ -45,8 +42,8 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
         // 保存channel
-//        Server.getMap().put(getIPString(ctx), ctx.channel());
-//        channel = ctx.channel();
+//        Server.getMap().put(getIPString(ctx), ctx.fileChannel());
+        Channel channel = ctx.channel();
 
 
         logger.info("channelRead  - Server recieve message");
@@ -59,12 +56,13 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
         logger.info("Client said:" + resultStr);
 
         //发送执行参数
-//        channel.writeAndFlush(Unpooled.wrappedBuffer(Server.params.getBytes())).addListener(new ChannelFutureListener() {
+//        fileChannel.writeAndFlush(Unpooled.wrappedBuffer(Server.params.getBytes())).addListener(new ChannelFutureListener() {
 //            @Override
 //            public void operationComplete(ChannelFuture future) throws Exception {
 //                logger.info("send params success: " + Server.params);
 //            }
 //        });
+
         GodVReader reader = GodVReader.getINSTANCE();
         while (!reader.done) {
             Thread.sleep(100);
@@ -76,9 +74,14 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
             try {
                 randomAccessFile = new RandomAccessFile(Constants.MIDDLE_HOME + Constants.RESULT_FILE_NAME, "rw");
                 ChunkedFile chunkedFile = new ChunkedFile(randomAccessFile);
-                ctx.writeAndFlush(chunkedFile).addListener(new ChannelFutureListener() {
+//                byte[] bytes = new byte[(int) randomAccessFile.length()];
+//                randomAccessFile.read(bytes);
+//                fileChannel.writeAndFlush(Unpooled.wrappedBuffer(bytes));
+                channel.writeAndFlush(chunkedFile)
+                        .addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
+                        logger.info("send complete.");
                         future.channel().close();
                     }
                 });
@@ -87,7 +90,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
             }
 
             // 发送结束标志
-//            channel.writeAndFlush(Unpooled.wrappedBuffer(new byte[]{-1})).addListener(new ChannelFutureListener() {
+//            fileChannel.writeAndFlush(Unpooled.wrappedBuffer(new byte[]{-1})).addListener(new ChannelFutureListener() {
 //                @Override
 //                public void operationComplete(ChannelFuture future) throws Exception {
 //                    logger.info("sent close signal");
@@ -104,9 +107,9 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 //            // 向客户端发送消息
 //            final byte[] message = getMessage();
 //            if (message != null) {
-////                Channel channel = Server.getMap().get("127.0.0.1"); //客户端在本地运行所以只取本地
+////                Channel fileChannel = Server.getMap().get("127.0.0.1"); //客户端在本地运行所以只取本地
 //                ByteBuf byteBuf = Unpooled.wrappedBuffer(message);
-//                channel.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
+//                fileChannel.writeAndFlush(byteBuf).addListener(new ChannelFutureListener() {
 //
 //                    @Override
 //                    public void operationComplete(ChannelFuture future) throws Exception {
@@ -153,7 +156,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
         public void run() {
             FileReader.readOneFile(new File(Constants.DATA_HOME + "/" + i + ".txt"), Server.schemaName, Server.tableName, Server.startPkId, Server.endPkId);
 //                Thread.sleep(100);
-            channel.writeAndFlush(Unpooled.wrappedBuffer(String.format("file %s.txt read done!", i).getBytes())).addListener(new ChannelFutureListener() {
+            fileChannel.writeAndFlush(Unpooled.wrappedBuffer(String.format("file %s.txt read done!", i).getBytes())).addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {
                     logger.info("sent read success!");

@@ -11,7 +11,9 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Arrays;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 
@@ -19,56 +21,60 @@ import java.util.List;
  * Created by autulin on 6/9/17.
  */
 public class GodVReader {
-    static boolean i = false;
-    static boolean u = false;
-    static boolean d = false;
+    //    static boolean i = false;
+//    static boolean u = false;
+//    static boolean d = false;
     private static Logger logger = LoggerFactory.getLogger(GodVReader.class);
-    private static int HEAD_LENGTH = 41; //用于读取时跳过
+    private static int HEAD_LENGTH = 60; //用于读取时跳过
     private static int MIN_LENGTH = 75;
     private static GodVReader INSTANCE = new GodVReader();
     public boolean done = false;
-    private String schema;
-    private String table;
     private int start;
     private int end;
     private String[] tableStructure = {"id", "first_name", "last_name", "sex", "score"};
     private HashMap<Long, HashMap<String, byte[]>> finalMap = new HashMap<>();
     private HashMap<Long, Long> primaryKeyMap = new HashMap<>(); //key为要追溯的，value为最终值
 
-    public static GodVReader getINSTANCE(String schema, String table, int start, int end) {
-        INSTANCE.schema = schema;
-        INSTANCE.table = table;
+    private boolean init = false;
+
+    public static GodVReader getINSTANCE(int start, int end) {
+
         INSTANCE.start = start;
         INSTANCE.end = end;
 
+        INSTANCE.init = true;
         return INSTANCE;
     }
 
     public static GodVReader getINSTANCE() {
-        if (INSTANCE.schema == null) { //没有初始化参数
-            return null;
-        }
+//        if (!INSTANCE.init) return null;
         return INSTANCE;
     }
 
     public static void main(String[] args) {
-        getINSTANCE("middleware5", "student", 100, 1000000).doRead(new File(Constants.DATA_HOME + "/" + "1.txt"));
-        getINSTANCE("middleware5", "student", 100, 1000000).getResult();
+        getINSTANCE(100, 1000000).doRead("1.txt");
+        getINSTANCE().getResult();
     }
 
-    public void doRead(File file) {
+    public void doRead(String sourceFileName) {
         Long startTime = System.currentTimeMillis();
         MappedByteBuffer mappedByteBuffer = null;
+        Path middleFilePath = Paths.get(Constants.MIDDLE_HOME + "/" + sourceFileName);
+        File middleFile = new File(middleFilePath.toString());
         try {
-            mappedByteBuffer = new RandomAccessFile(file, "r")
+            Files.copy(Paths.get(Constants.DATA_HOME + "/" + sourceFileName),
+                    middleFilePath);
+            logger.info("copy file[{}] cost: {}", sourceFileName, (System.currentTimeMillis() - startTime));
+            mappedByteBuffer = new RandomAccessFile(middleFile, "r")
                     .getChannel()
-                    .map(FileChannel.MapMode.READ_ONLY, 0, file.length());
+                    .map(FileChannel.MapMode.READ_ONLY, 0, middleFile.length());
         } catch (IOException e) {
             logger.error(e.toString());
+            return;
         }
         mappedByteBuffer.load();
 
-        int offset = (int) file.length();
+        int offset = (int) middleFile.length();
         mappedByteBuffer.position(offset); //跳过文件结尾的"\0"
 
 
@@ -83,13 +89,13 @@ public class GodVReader {
                 logger.error("文件读完了！");
                 break;
             }
-            if (row.isValid()) {
+//            if (row.isValid()) {
                 doJob(row);
-            }
+//            }
         }
 
         Long endTime = System.currentTimeMillis();
-        logger.info("file[{}] read cost: {}", file.getName(), (endTime - startTime));
+        logger.info("file[{}] done cost: {}", sourceFileName, (endTime - startTime));
 
 //        getResult();
     }
@@ -235,48 +241,49 @@ public class GodVReader {
         }
 
         //调试日志
-        if (!i || !u || !d) {
-            switch (row.getOperation()) {
-                case 'I':
-                    if (!i) {
-                        logger.info(row.toString());
-                    }
-                    i = true;
-                    break;
-                case 'U':
-                    if (!u) {
-                        logger.info(row.toString());
-                    }
-                    u = true;
-                    break;
-                case 'D':
-                    if (!d) {
-                        logger.info(row.toString());
-                    }
-                    d = true;
-                    break;
-            }
-        }
+//        if (!i || !u || !d) {
+//            switch (row.getOperation()) {
+//                case 'I':
+//                    if (!i) {
+//                        logger.info(row.toString());
+//                    }
+//                    i = true;
+//                    break;
+//                case 'U':
+//                    if (!u) {
+//                        logger.info(row.toString());
+//                    }
+//                    u = true;
+//                    break;
+//                case 'D':
+//                    if (!d) {
+//                        logger.info(row.toString());
+//                    }
+//                    d = true;
+//                    break;
+//            }
+//        }
 
         return row;
     }
 
     private Row parseRow(MappedByteBuffer buffer) {
         Row row = new Row();
-        byte[] tSchema = FileReader.readArea(buffer, 1);
-        if (!Arrays.equals(tSchema, schema.getBytes())) {
-            row.setValid(false);
-            return row;
-        }
-        byte[] tTable = FileReader.readArea(buffer, 1);
-        if (!Arrays.equals(tTable, table.getBytes())) {
-            row.setValid(false);
-            return row;
-        }
+        //表已经定死，不需要了
+//        byte[] tSchema = FileReader.readArea(buffer, 1);
+//        if (!Arrays.equals(tSchema, schema.getBytes())) {
+//            row.setValid(false);
+//            return row;
+//        }
+//        byte[] tTable = FileReader.readArea(buffer, 1);
+//        if (!Arrays.equals(tTable, table.getBytes())) {
+//            row.setValid(false);
+//            return row;
+//        }
 
-        row.setValid(true);
+//        row.setValid(true);
 
-        buffer.get();
+        buffer.position(getNextSeperatorPosition(buffer, 1) + 1);
         byte operation = buffer.get();
         row.setOperation((char) operation);
 
