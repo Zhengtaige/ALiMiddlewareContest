@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race.sync;
 
 import com.alibaba.middleware.race.sync.model.Column;
+import com.alibaba.middleware.race.sync.model.IdMap;
 import com.alibaba.middleware.race.sync.model.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,8 @@ public class GodVReader {
     private int end;
     private String[] tableStructure = {"id", "first_name", "last_name", "sex", "score"};
     private HashMap<Long, HashMap<String, byte[]>> finalMap = new HashMap<>();
-    private HashMap<Long, Long> primaryKeyMap = new HashMap<>(); //key为要追溯的，value为最终值
+//    private HashMap<Long, Long> primaryKeyMap = new HashMap<>(); //key为要追溯的，value为最终值
+    private IdMap primaryKeyMap;
 
     private boolean init = false;
 
@@ -77,9 +79,10 @@ public class GodVReader {
         mappedByteBuffer.position(offset); //跳过文件结尾的"\0"
 
 
-        for (long i = start + 1; i < end; i++) {
-            primaryKeyMap.put(i, i);
-        }
+        primaryKeyMap = new IdMap(start, end);
+//        for (long i = start + 1; i < end; i++) {
+//            primaryKeyMap.put(i, i);
+//        }
 
         Row row;
         while (primaryKeyMap.size() != 0) {
