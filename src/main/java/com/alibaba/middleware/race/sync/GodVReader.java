@@ -11,7 +11,6 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -62,9 +61,9 @@ public class GodVReader {
         Path middleFilePath = Paths.get(Constants.MIDDLE_HOME + "/" + sourceFileName);
         File middleFile = new File(middleFilePath.toString());
         try {
-            Files.copy(Paths.get(Constants.DATA_HOME + "/" + sourceFileName),
-                    middleFilePath);
-            logger.info("copy file[{}] cost: {}", sourceFileName, (System.currentTimeMillis() - startTime));
+//            Files.copy(Paths.get(Constants.DATA_HOME + "/" + sourceFileName),
+//                    middleFilePath);
+//            logger.info("copy file[{}] cost: {}", sourceFileName, (System.currentTimeMillis() - startTime));
             mappedByteBuffer = new RandomAccessFile(middleFile, "r")
                     .getChannel()
                     .map(FileChannel.MapMode.READ_ONLY, 0, middleFile.length());
@@ -129,7 +128,10 @@ public class GodVReader {
                 if (finalMap.containsKey(i)) {
                     ByteBuffer byteBuffer = ByteBuffer.allocate(256);
                     HashMap<String, byte[]> colomns = finalMap.get(i);
-                    for (int j = 0; j < tableStructure.length - 1; j++) {
+
+                    byteBuffer.put(String.valueOf(i).getBytes()); // id
+                    byteBuffer.put((byte) 9); // \t
+                    for (int j = 1; j < tableStructure.length - 1; j++) {
                         byteBuffer.put(colomns.get(tableStructure[j]));
                         byteBuffer.put((byte) 9); // \t
                     }
@@ -157,6 +159,8 @@ public class GodVReader {
         switch (row.getOperation()) {
             case 'I':
                 idAfter = Utils.bytes2Long(columns.get(0).getAfter());
+                columns.remove(0);
+
                 if (primaryKeyMap.containsKey(idAfter)) {
                     HashMap<String, byte[]> columnMap;
                     long finalId = primaryKeyMap.get(idAfter);
@@ -181,6 +185,8 @@ public class GodVReader {
                 break;
             case 'D':
                 idBefore = Utils.bytes2Long(columns.get(0).getBefore());
+                columns.remove(0);
+
                 if (primaryKeyMap.containsKey(idBefore)) { //停止追溯该id
                     primaryKeyMap.remove(idBefore);
                 }
@@ -188,6 +194,8 @@ public class GodVReader {
             case 'U':
                 idAfter = Utils.bytes2Long(columns.get(0).getAfter());
                 idBefore = Utils.bytes2Long(columns.get(0).getBefore());
+                columns.remove(0);
+
 
                 if (primaryKeyMap.containsKey(idBefore)
                         && !primaryKeyMap.containsKey(idAfter)) { // 从范围里面改出去的，先删掉里面的追溯

@@ -30,7 +30,11 @@ public class Client {
         // 从args获取server端的ip
         ip = args[0];
         Client client = new Client();
+
+        logger.info("waiting...");
         Thread.sleep(60000);
+
+        logger.info("start connect...");
         client.connect(ip, port);
 
 

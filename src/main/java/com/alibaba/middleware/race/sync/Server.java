@@ -10,6 +10,9 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -64,6 +67,16 @@ public class Server {
 //                    FileReader.readOneFile(new File(Constants.DATA_HOME + "/" + j + ".txt"), schemaName, tableName, startPkId, endPkId);
 //                    logger.info("FileReader read file{}.txt cost {}", j, System.currentTimeMillis() - start);
 //                }
+                logger.info("[{}]start copy file.", System.currentTimeMillis());
+                for (int i = 1; i < 11; i++) {
+                    try {
+                        Files.copy(Paths.get(Constants.DATA_HOME + "/" + i + ".txt"),
+                                Paths.get(Constants.MIDDLE_HOME + "/" + i + ".txt"));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                logger.info("[{}]copy done.", System.currentTimeMillis());
 
                 logger.info("start GodVReader");
                 GodVReader reader = GodVReader.getINSTANCE(
