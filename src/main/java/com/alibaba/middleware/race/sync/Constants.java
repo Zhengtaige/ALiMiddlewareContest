@@ -32,7 +32,7 @@ interface Constants {
     // 中间结果目录（client和server都会用到）
     String MIDDLE_HOME = "/home/admin/middle/7721890v3f/";
 
-    //     结果文件的命名
+    //结果文件的命名
     String RESULT_FILE_NAME = "Result.rs";
 
 }
