@@ -242,12 +242,12 @@ public class FileReader {
         byte[] bytes = new byte[i - 1];
         mappedByteBuffer.get(bytes);
         Column column = new Column();
-        column.setName(new String(bytes));
+//        column.setName(new String(bytes));
 
         mappedByteBuffer.get(); //跳过“：”
-        column.setType((byte) (mappedByteBuffer.get() - 48)); //数据里是ASCII码值
+//        column.setType((byte) (mappedByteBuffer.get() - 48)); //数据里是ASCII码值
         mappedByteBuffer.get(); //跳过“：”
-        column.setPrimary(mappedByteBuffer.get() - 48 == 1);
+//        column.setPrimary(mappedByteBuffer.get() - 48 == 1);
         return column;
     }
 

@@ -1,7 +1,7 @@
 package com.alibaba.middleware.race.sync;
 
 import com.alibaba.middleware.race.sync.model.Column;
-import com.alibaba.middleware.race.sync.model.IdMap;
+import com.alibaba.middleware.race.sync.model.ResultMap;
 import com.alibaba.middleware.race.sync.model.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,6 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by autulin on 6/9/17.
@@ -31,10 +30,11 @@ public class GodVReader {
     public boolean done = false;
     private int start;
     private int end;
-    private String[] tableStructure = {"id", "first_name", "last_name", "sex", "score"};
-    private HashMap<Long, HashMap<String, byte[]>> finalMap = new HashMap<>();
-//    private HashMap<Long, Long> primaryKeyMap = new HashMap<>(); //key为要追溯的，value为最终值
-    private IdMap primaryKeyMap;
+    private String[] tableStructure = ResultMap.tableStructure;
+    //    private HashMap<Long, HashMap<String, byte[]>> finalMap = new HashMap<>();
+    private ResultMap finalMap;
+    private HashMap<Long, Long> primaryKeyMap = new HashMap<>(); //key为要追溯的，value为最终值
+//    private ResultMap primaryKeyMap;
 
     private boolean init = false;
 
@@ -44,6 +44,8 @@ public class GodVReader {
         INSTANCE.end = end;
 
         INSTANCE.init = true;
+
+        INSTANCE.finalMap = new ResultMap(start, end);
         return INSTANCE;
     }
 
@@ -79,10 +81,12 @@ public class GodVReader {
         mappedByteBuffer.position(offset); //跳过文件结尾的"\0"
 
 
-        primaryKeyMap = new IdMap(start, end);
-//        for (long i = start + 1; i < end; i++) {
-//            primaryKeyMap.put(i, i);
-//        }
+//        primaryKeyMap = new ResultMap(start, end);
+        logger.info("[{}]init Key Map", System.currentTimeMillis());
+        for (long i = start + 1; i < end; i++) {
+            primaryKeyMap.put(i, i);
+        }
+        logger.info("[{}]init Key Map done.", System.currentTimeMillis());
 
         Row row;
         while (primaryKeyMap.size() != 0) {
@@ -102,7 +106,7 @@ public class GodVReader {
 //        getResult();
     }
 
-    public byte[] getResultBytes() {
+    /*public byte[] getResultBytes() {
         ByteBuffer byteBuffer = ByteBuffer.allocate(7 * 1024 * 1024); //考虑到100w条
         for (long i = start + 1; i < end; i++) {
             if (finalMap.containsKey(i)) {
@@ -120,9 +124,10 @@ public class GodVReader {
         byte[] bytes = new byte[byteBuffer.limit()];
         byteBuffer.get(bytes);
         return bytes;
-    }
+    }*/
 
     public void getResult() {
+        logger.info("[{}]start getResult", System.currentTimeMillis());
         FileChannel channel;
         try {
             RandomAccessFile randomAccessFile = new RandomAccessFile(new File(Constants.MIDDLE_HOME + Constants.RESULT_FILE_NAME), "rw");
@@ -130,15 +135,15 @@ public class GodVReader {
             for (long i = start + 1; i < end; i++) {
                 if (finalMap.containsKey(i)) {
                     ByteBuffer byteBuffer = ByteBuffer.allocate(256);
-                    HashMap<String, byte[]> colomns = finalMap.get(i);
+                    byte[][] colomns = finalMap.get(i);
 
                     byteBuffer.put(String.valueOf(i).getBytes()); // id
                     byteBuffer.put((byte) 9); // \t
                     for (int j = 1; j < tableStructure.length - 1; j++) {
-                        byteBuffer.put(colomns.get(tableStructure[j]));
+                        byteBuffer.put(colomns[j - 1]);
                         byteBuffer.put((byte) 9); // \t
                     }
-                    byteBuffer.put(colomns.get(tableStructure[tableStructure.length - 1]));
+                    byteBuffer.put(colomns[colomns.length - 1]);
                     byteBuffer.put((byte) 10); // \n
                     byteBuffer.flip();
 //                    System.out.println(byteBuffer.position() + "," + byteBuffer.limit());
@@ -153,33 +158,43 @@ public class GodVReader {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        logger.info("[{}]getResult done.", System.currentTimeMillis());
 
     }
 
     private void doJob(Row row) {
         long idBefore, idAfter;
-        List<Column> columns = row.getColumns();
+//        List<Column> columns = row.getColumns();
+        Column[] columns = row.getColumns();
         switch (row.getOperation()) {
             case 'I':
-                idAfter = Utils.bytes2Long(columns.get(0).getAfter());
-                columns.remove(0);
+                idAfter = Utils.bytes2Long(columns[0].getAfter());
+                columns[0] = null;
 
                 if (primaryKeyMap.containsKey(idAfter)) {
-                    HashMap<String, byte[]> columnMap;
                     long finalId = primaryKeyMap.get(idAfter);
+                    byte[][] columnMap = finalMap.get(finalId);
                     if (!finalMap.containsKey(finalId)) { //直接插入
-                        columnMap = new HashMap<>();
-                        for (Column c :
-                                columns) {
-                            columnMap.put(c.getName(), c.getAfter());
+//                        columnMap = new HashMap<>();
+//                        for (Column c :
+//                                columns) {
+//                            columnMap.put(c.getName(), c.getAfter());
+//                        }
+//                        finalMap.put(finalId, columnMap);
+                        for (int i = 1; i < columns.length; i++) {
+                            columnMap[i - 1] = columns[i].getAfter();
                         }
-                        finalMap.put(finalId, columnMap);
                     } else { //追溯到的插入
-                        columnMap = finalMap.get(finalId);
-                        for (Column c :
-                                columns) {
-                            if (!columnMap.containsKey(c.getName())) { //只插入不包含的列，既然是insert，那么这次肯定会插满的
-                                columnMap.put(c.getName(), c.getAfter());
+//                        columnMap = finalMap.get(finalId);
+//                        for (Column c :
+//                                columns) {
+//                            if (!columnMap.containsKey(c.getName())) { //只插入不包含的列，既然是insert，那么这次肯定会插满的
+//                                columnMap.put(c.getName(), c.getAfter());
+//                            }
+//                        }
+                        for (int i = 1; i < columns.length; i++) {
+                            if (columnMap[i - 1] == null) {
+                                columnMap[i - 1] = columns[i].getAfter();
                             }
                         }
                     }
@@ -187,17 +202,17 @@ public class GodVReader {
                 }
                 break;
             case 'D':
-                idBefore = Utils.bytes2Long(columns.get(0).getBefore());
-                columns.remove(0);
+                idBefore = Utils.bytes2Long(columns[0].getBefore());
+                columns[0] = null;
 
                 if (primaryKeyMap.containsKey(idBefore)) { //停止追溯该id
                     primaryKeyMap.remove(idBefore);
                 }
                 break;
             case 'U':
-                idAfter = Utils.bytes2Long(columns.get(0).getAfter());
-                idBefore = Utils.bytes2Long(columns.get(0).getBefore());
-                columns.remove(0);
+                idAfter = Utils.bytes2Long(columns[0].getAfter());
+                idBefore = Utils.bytes2Long(columns[0].getBefore());
+                columns[0] = null;
 
 
                 if (primaryKeyMap.containsKey(idBefore)
@@ -207,21 +222,26 @@ public class GodVReader {
                 }
                 if (primaryKeyMap.containsKey(idAfter)) { //得到追溯的ID
                     long id = primaryKeyMap.get(idAfter); //原始ID
-                    HashMap<String, byte[]> columnMap = finalMap.get(id);
-                    if (columnMap == null) { //从外面改进来, 或者里面改里面
-                        columnMap = new HashMap<>();
-                        finalMap.put(id, columnMap);
-                    }
-                    for (Column c :
-                            columns) {
-                        if (!columnMap.containsKey(c.getName())) {
-                            columnMap.put(c.getName(), c.getAfter());
+                    byte[][] columnMap = finalMap.get(id);
+//                    if (columnMap == null) { //从外面改进来, 或者里面改里面
+//                        columnMap = new HashMap<>();
+//                        finalMap.put(id, columnMap);
+//                    }
+//                    for (Column c :
+//                            columns) {
+//                        if (!columnMap.containsKey(c.getName())) {
+//                            columnMap.put(c.getName(), c.getAfter());
+//                        }
+//                    }
+                    for (int i = 1; i < columns.length; i++) {
+                        if (columnMap[i - 1] != null) {
+                            columnMap[i - 1] = columns[i].getAfter();
                         }
                     }
 
 
                     primaryKeyMap.remove(idAfter); //默认处理后删掉当前id，如果列没有更新完就向上追溯
-                    if (columnMap.size() != 5) {
+                    if (!finalMap.isFull(id)) {
                         primaryKeyMap.put(idBefore, id);  //向上追溯
                     }
 
@@ -311,9 +331,9 @@ public class GodVReader {
         buffer.position(position);
         int areaEnd = getNextSeperatorPosition(buffer, 1);
         Column id = new Column();
-        id.setName("id");
-        id.setPrimary(true);
-        id.setType(Column.INT_TYPE);
+//        id.setName("id");
+//        id.setPrimary(true);
+//        id.setType(Column.INT_TYPE);
         if (buffer.get(position) != 'N') {
             bytes = new byte[areaEnd - position];
             buffer.get(bytes);
@@ -334,7 +354,8 @@ public class GodVReader {
             position = getNextSeperatorPosition(buffer, 1);
             buffer.position(position);
         }
-        row.getColumns().add(id);
+//        row.getColumns().add(id);
+        row.getColumns()[0] = id;
 
         switch (row.getOperation()) {
             case 'I':
@@ -343,84 +364,89 @@ public class GodVReader {
                 buffer.position(position);
                 areaEnd = getNextSeperatorPosition(buffer, 1);
                 Column firstName = new Column();
-                firstName.setName("first_name");
-                firstName.setPrimary(false);
-                firstName.setType(Column.STRING_TYPE);
+//                firstName.setName("first_name");
+//                firstName.setPrimary(false);
+//                firstName.setType(Column.STRING_TYPE);
                 bytes = new byte[areaEnd - position];
                 buffer.get(bytes);
                 firstName.setAfter(bytes);
-                row.getColumns().add(firstName);
+                row.getColumns()[1] = firstName;
 
                 //last_name
                 position = getNextSeperatorPosition(buffer, 3) + 1;
                 buffer.position(position);
                 areaEnd = getNextSeperatorPosition(buffer, 1);
                 Column lastName = new Column();
-                lastName.setName("last_name");
-                lastName.setPrimary(false);
-                lastName.setType(Column.STRING_TYPE);
+//                lastName.setName("last_name");
+//                lastName.setPrimary(false);
+//                lastName.setType(Column.STRING_TYPE);
                 bytes = new byte[areaEnd - position];
                 buffer.get(bytes);
                 lastName.setAfter(bytes);
-                row.getColumns().add(lastName);
+                row.getColumns()[2] = lastName;
 
                 //sex
                 position = getNextSeperatorPosition(buffer, 3) + 1;
                 buffer.position(position);
                 areaEnd = getNextSeperatorPosition(buffer, 1);
                 Column sex = new Column();
-                sex.setName("sex");
-                sex.setPrimary(false);
-                sex.setType(Column.STRING_TYPE);
+//                sex.setName("sex");
+//                sex.setPrimary(false);
+//                sex.setType(Column.STRING_TYPE);
                 bytes = new byte[areaEnd - position];
                 buffer.get(bytes);
                 sex.setAfter(bytes);
-                row.getColumns().add(sex);
+                row.getColumns()[3] = sex;
 
                 //score
                 position = getNextSeperatorPosition(buffer, 3) + 1;
                 buffer.position(position);
                 areaEnd = getNextSeperatorPosition(buffer, 1);
                 Column score = new Column();
-                score.setName("score");
-                score.setPrimary(false);
-                score.setType(Column.INT_TYPE);
+//                score.setName("score");
+//                score.setPrimary(false);
+//                score.setType(Column.INT_TYPE);
                 bytes = new byte[areaEnd - position];
                 buffer.get(bytes);
                 score.setAfter(bytes);
-                row.getColumns().add(score);
+                row.getColumns()[4] = score;
                 break;
 
             case 'U':
-                Column column;
-                while ((column = readNextColumn(buffer)) != null) {
-                    row.getColumns().add(column);
+                Column[] columns = row.getColumns();
+                while (readNextColumn(buffer, columns) != null) {
+//                    row.getColumns().add(column);
                 }
                 break;
         }
 
     }
 
-    private Column readNextColumn(MappedByteBuffer buffer) {
+    private Column readNextColumn(MappedByteBuffer buffer, Column[] columns) {
         Column column = new Column();
         buffer.get();
-        column.setPrimary(false);
+//        column.setPrimary(false);
+        int index = 0;
         switch (buffer.get()) {
             case 'f': //first_name
-                column.setName("first_name");
-                column.setType(Column.STRING_TYPE);
+//                column.setName("first_name");
+//                column.setType(Column.STRING_TYPE);
+                index = 1;
                 break;
             case 'l':
-                column.setName("last_name");
-                column.setType(Column.STRING_TYPE);
+//                column.setName("last_name");
+//                column.setType(Column.STRING_TYPE);
+                index = 2;
                 break;
             case 's':
                 if (buffer.get() == 'e') { //sex
-                    column.setName("sex");
-                    column.setType(Column.STRING_TYPE);
+//                    column.setName("sex");
+//                    column.setType(Column.STRING_TYPE);
+                    index = 3;
                 } else {
-                    column.setName("score");
-                    column.setType(Column.INT_TYPE);
+//                    column.setName("score");
+//                    column.setType(Column.INT_TYPE);
+                    index = 4;
                 }
                 break;
             case '\n':
@@ -429,14 +455,15 @@ public class GodVReader {
         int start = getNextSeperatorPosition(buffer, 1) + 1;
         int end = getNextSeperatorPosition(buffer, 2);
         byte[] bytes;
-        if (buffer.get(start) == 'N') {
-            column.setBefore(null);
-        } else {
-            bytes = new byte[end - start];
-            buffer.position(start);
-            buffer.get(bytes);
-            column.setBefore(bytes);
-        }
+        //不用在意变更前的
+//        if (buffer.get(start) == 'N') {
+//            column.setBefore(null);
+//        } else {
+//            bytes = new byte[end - start];
+//            buffer.position(start);
+//            buffer.get(bytes);
+//            column.setBefore(bytes);
+//        }
         buffer.position(end);
         start = getNextSeperatorPosition(buffer, 1) + 1;
         if (buffer.get(start) == 'N') {
@@ -448,6 +475,8 @@ public class GodVReader {
             buffer.get(bytes);
             column.setAfter(bytes);
         }
+
+        columns[index] = column;
         return column;
     }
 
@@ -479,7 +508,7 @@ public class GodVReader {
         }
     }
 
-    public HashMap<Long, HashMap<String, byte[]>> getFinalMap() {
-        return finalMap;
-    }
+//    public HashMap<Long, HashMap<String, byte[]>> getFinalMap() {
+//        return finalMap;
+//    }
 }

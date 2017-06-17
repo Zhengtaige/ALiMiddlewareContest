@@ -1,15 +1,13 @@
 package com.alibaba.middleware.race.sync.model;
 
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * Created by autulin on 6/12/17.
  */
 public class Row {
     //    private boolean valid;
     private Character operation;
-    private List<Column> columns = new LinkedList<>();
+    //    private List<Column> columns = new LinkedList<>();
+    private Column[] columns = new Column[5];
 
 //    public boolean isValid() {
 //        return valid;
@@ -27,13 +25,13 @@ public class Row {
         this.operation = operation;
     }
 
-    public List<Column> getColumns() {
+    public Column[] getColumns() {
         return columns;
     }
 
-    public void setColumns(List<Column> columns) {
-        this.columns = columns;
-    }
+//    public void setColumns(List<Column> columns) {
+//        this.columns = columns;
+//    }
 
     @Override
     public String toString() {
