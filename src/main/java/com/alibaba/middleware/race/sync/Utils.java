@@ -13,6 +13,6 @@ public class Utils {
         return Integer.parseInt(new String(bytes));
     }
     public static BlockingQueue<Binlog> binlogQueue = new LinkedBlockingQueue<>();
-
+    public static final int Buffer_Size = 8192 * 100;
 
 }
