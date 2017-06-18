@@ -12,7 +12,6 @@ public class Utils {
     public static int bytes2Int(byte[] bytes) {
         return Integer.parseInt(new String(bytes));
     }
+    public static final int QUEUE_SIZE = 8192 * 100;
     public static BlockingQueue<Binlog> binlogQueue = new LinkedBlockingQueue<>();
-    public static final int Buffer_Size = 8192 * 100;
-
 }

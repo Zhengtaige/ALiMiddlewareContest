@@ -24,40 +24,49 @@ public class PositiveSq {
     private static byte[] first = new byte[3];
     private static byte[] readsex = new byte[3];
     private static byte type;
-//    public static void main(String[] args) throws IOException {
-//        long t1 = System.currentTimeMillis();
-//        initMap();
-//        positiveread();
-////        System.out.println(System.currentTimeMillis()-t1);
-//        logger.info("{}", System.currentTimeMillis()-t1);
-//    }
+    public static void main(String[] args) throws IOException {
+        long t1 = System.currentTimeMillis();
+        initMap();
+        new Thread(new middleResultHandler()).start();
+        positiveread();
+//        System.out.println(System.currentTimeMillis()-t1);
+        logger.info("{}", System.currentTimeMillis()-t1);
+    }
 
     public static void testTime(){
         long t1 = System.currentTimeMillis();
         initMap();
+        new Thread(new middleResultHandler()).start();
         positiveread();
 //        System.out.println(System.currentTimeMillis()-t1);
         logger.info("{}", System.currentTimeMillis()-t1);
     }
 
     public static void positiveread() {
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 1; i <= 1; i++) {
             try {
-                FileChannel fileChannel = new RandomAccessFile(Constants.DATA_HOME+"/" + i + ".txt", "r").getChannel();
+                FileChannel fileChannel = new RandomAccessFile(Constants.LOCAL_DATA_HOME+"/" + i + ".txt", "r").getChannel();
                 MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
                 while (true) {
                     //Step1: 读取废字段
                     mappedByteBuffer.position(mappedByteBuffer.position() + Length);
                     handleIUD(mappedByteBuffer);
                 }
-            } catch (Exception e) {
-                logger.info("{}", e.getMessage());
+            } catch (IllegalArgumentException e){
+                logger.info("{}","文件读取完毕!");
+            }
+            catch (Exception e) {
+//                logger.info("{}", e.getMessage());
+                e.printStackTrace();
             }
         }
+        Binlog binlog = new Binlog();
+        Utils.binlogQueue.offer(binlog);
 
 
     }
     private static void handleIUD(MappedByteBuffer mappedByteBuffer) throws IOException {
+        Binlog binlog = new Binlog();
         while (true) {
             operation=mappedByteBuffer.get();
             //Step2: 读取操作符
@@ -81,6 +90,10 @@ public class PositiveSq {
                     mappedByteBuffer.position(mappedByteBuffer.position()+16);
                     readdata[3]=linkscore(mappedByteBuffer, namelist);
                     mappedByteBuffer.get(); //吃掉 '\n'
+                    binlog.setId(afterid);
+                    binlog.setOperation(operation);
+                    binlog.setData(readdata);
+                    Utils.binlogQueue.offer(binlog);
                     return;
 
                 case 'U':
@@ -110,6 +123,13 @@ public class PositiveSq {
                                 readdata[type]=linkscore(mappedByteBuffer, namelist);
                             }
                     }
+                    binlog.setId(beforeid);
+                    binlog.setOperation(operation);
+                    binlog.setData(readdata);
+                    if(!beforeid.equals(afterid)) {
+                        binlog.setNewid(afterid);
+                    }
+                    Utils.binlogQueue.offer(binlog);
                     return;
 
                 case 'D':
@@ -117,8 +137,10 @@ public class PositiveSq {
                     beforeid = linkid(mappedByteBuffer, namelist);
                     mappedByteBuffer.position(mappedByteBuffer.position()+87);
                     while (mappedByteBuffer.get() != '\n') ;
+                    binlog.setId(beforeid);
+                    binlog.setOperation(operation);
+                    Utils.binlogQueue.offer(binlog);
                     return;
-
             }
         }
     }
@@ -136,9 +158,8 @@ public class PositiveSq {
             if(temp == '|') break;
             else name.add(temp);
         }
-        byte[] res = new byte[6];
+        byte[] res = new byte[name.size()];
         for(int i=0;i<name.size();i++)  res[i] = name.get(i);
-        if(name.size() == 3) res[3] = '\t';
         name.clear();
         return res;
     }
@@ -148,11 +169,8 @@ public class PositiveSq {
             if(temp == '|') break;
             else score.add(temp);
         }
-        byte[] res = new byte[4];
+        byte[] res = new byte[score.size()];
         for(int i=0;i<score.size();i++)  res[i] = score.get(i);
-        if(score.size()<4){
-            res[score.size()] = '\t';
-        }
         score.clear();
         return res;
     }

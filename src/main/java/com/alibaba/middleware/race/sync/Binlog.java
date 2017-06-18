@@ -5,10 +5,11 @@ package com.alibaba.middleware.race.sync;
  */
 public class Binlog {
     private String id;
-    private byte[] data;
+    private byte[][] data;
     private byte operation;
+    private String newid;
 
-    public void setData(byte[] data) {
+    public void setData(byte[][] data) {
         this.data = data;
     }
 
@@ -20,7 +21,11 @@ public class Binlog {
         this.operation = operation;
     }
 
-    public byte[] getData() {
+    public void setNewid(String newid) {
+        this.newid = newid;
+    }
+
+    public byte[][] getData() {
         return data;
     }
 
@@ -30,5 +35,9 @@ public class Binlog {
 
     public String getId() {
         return id;
+    }
+
+    public String getNewid() {
+        return newid;
     }
 }
