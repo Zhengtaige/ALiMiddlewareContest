@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race.sync;
 
-import com.alibaba.middleware.race.sync.model.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.MappedByteBuffer;
@@ -12,50 +13,37 @@ import java.util.LinkedList;
  * Created by nick_zhengtaige on 2017/6/16.
  */
 public class PositiveSq {
-    private static int Length = "|mysql-bin.00001882901|1497279993000|middleware5|student|".getBytes().length;
+    static Logger logger = LoggerFactory.getLogger(PositiveSq.class);
+    private static int Length = 57;
     private static byte[][] readdata;
-    private static byte[] wastewords = new byte[Length];
     private static HashMap<Byte, Byte> typemap = new HashMap<Byte, Byte>();   //记录操作类型以及第几列属性
-    private static long reflectarea = 0;
     private static LinkedList<Byte> namelist = new LinkedList<Byte>();
-    private static String beforeid=null;
-    private static String afterid = null;
+    private static String beforeid;
+    private static String afterid ;
     private static byte operation ;
     private static byte[] first = new byte[3];
-    private static byte[] last = new byte[6];
     private static byte[] readsex = new byte[3];
-    private static byte[] score = new byte[4];
     private static byte type;
-    private static long stop;
-    private static long JJ = 0;
     public static void main(String[] args) throws IOException {
         long t1 = System.currentTimeMillis();
         initMap();
         positiveread();
-        System.out.println(System.currentTimeMillis()-t1);
+//        System.out.println(System.currentTimeMillis()-t1);
+        logger.info("{}", System.currentTimeMillis()-t1);
     }
 
     public static void positiveread() {
-        Long startTime = System.currentTimeMillis();
         for (int i = 1; i <= 10; i++) {
             try {
-                FileChannel fileChannel = new RandomAccessFile("E:\\__下载\\Data_Ali\\" + i + ".txt", "r").getChannel();
+                FileChannel fileChannel = new RandomAccessFile(Constants.DATA_HOME + i + ".txt", "r").getChannel();
                 MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
                 while (true) {
                     //Step1: 读取废字段
                     mappedByteBuffer.position(mappedByteBuffer.position() + Length);
-                    JJ++;
                     handleIUD(mappedByteBuffer);
                 }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (IllegalArgumentException e){
-                e.printStackTrace();
             } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println(JJ);
+                logger.info("{}", e.getMessage());
             }
         }
 
@@ -84,10 +72,7 @@ public class PositiveSq {
 
                     mappedByteBuffer.position(mappedByteBuffer.position()+16);
                     readdata[3]=linkscore(mappedByteBuffer, namelist);
-                    byte tmpb = mappedByteBuffer.get(); //吃掉 '\n'
-//                    if (tmpb != '\n') {
-//                        System.out.println("!!");
-//                    }
+                    mappedByteBuffer.get(); //吃掉 '\n'
                     return;
 
                 case 'U':
