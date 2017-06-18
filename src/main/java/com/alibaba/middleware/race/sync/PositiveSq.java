@@ -24,7 +24,15 @@ public class PositiveSq {
     private static byte[] first = new byte[3];
     private static byte[] readsex = new byte[3];
     private static byte type;
-    public static void main(String[] args) throws IOException {
+//    public static void main(String[] args) throws IOException {
+//        long t1 = System.currentTimeMillis();
+//        initMap();
+//        positiveread();
+////        System.out.println(System.currentTimeMillis()-t1);
+//        logger.info("{}", System.currentTimeMillis()-t1);
+//    }
+
+    public static void testTime(){
         long t1 = System.currentTimeMillis();
         initMap();
         positiveread();

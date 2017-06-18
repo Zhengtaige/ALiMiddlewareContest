@@ -35,17 +35,17 @@ public class Server {
         Server.map = map;
     }
 
-//    public static void main(String[] args) throws InterruptedException {
-//        initProperties();
-//        printInput(args);
-//        Logger logger = LoggerFactory.getLogger(Server.class);
-//        Server server = new Server();
-////        for (int i = 0; i < 100; i++) { //防止后面的log被截断
-//            logger.info("com.alibaba.middleware.race.sync.Server is running....");
-////        }
-//
-//        server.startServer(5527);
-//    }
+    public static void main(String[] args) throws InterruptedException {
+        initProperties();
+        printInput(args);
+        Logger logger = LoggerFactory.getLogger(Server.class);
+        Server server = new Server();
+//        for (int i = 0; i < 100; i++) { //防止后面的log被截断
+            logger.info("com.alibaba.middleware.race.sync.Server is running....");
+//        }
+        PositiveSq.testTime();
+        server.startServer(5527);
+    }
 
     /**
      * 打印赛题输入 赛题输入格式： schemaName tableName startPkId endPkId，例如输入： middleware student 100 200
