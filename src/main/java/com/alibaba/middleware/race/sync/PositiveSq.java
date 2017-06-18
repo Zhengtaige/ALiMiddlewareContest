@@ -43,7 +43,7 @@ public class PositiveSq {
     public static void positiveread() {
         for (int i = 1; i <= 10; i++) {
             try {
-                FileChannel fileChannel = new RandomAccessFile(Constants.DATA_HOME + i + ".txt", "r").getChannel();
+                FileChannel fileChannel = new RandomAccessFile(Constants.DATA_HOME+"/" + i + ".txt", "r").getChannel();
                 MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
                 while (true) {
                     //Step1: 读取废字段
