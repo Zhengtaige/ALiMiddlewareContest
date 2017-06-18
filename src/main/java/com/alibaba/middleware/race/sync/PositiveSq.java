@@ -12,7 +12,7 @@ import java.util.LinkedList;
  * Created by nick_zhengtaige on 2017/6/16.
  */
 public class PositiveSq {
-    private static int Length = "|mysql-bin.000018829057528|1497264609000|middleware5|student|".getBytes().length;
+    private static int Length = "|mysql-bin.00001882901|1497279993000|middleware5|student|".getBytes().length;
     private static byte[] readdata = new byte[16];
     private static byte[] readupdate = new byte[20];
     private static byte[] wastewords = new byte[Length];
@@ -27,10 +27,12 @@ public class PositiveSq {
     private static byte[] readsex = new byte[3];
     private static byte[] score = new byte[4];
     private static byte[] type = new byte[1];
+    private static long stop;
+    private static long JJ = 0;
     public static void main(String[] args) throws IOException {
         long t1 = System.currentTimeMillis();
         initMap();
-        positiveread(new File("E:\\__下载\\Data_Ali\\canal.txt"));
+        positiveread(new File("/Users/Nick_Zhengtaige/Desktop/A/canal.txt"));
         System.out.println(System.currentTimeMillis()-t1);
     }
 
@@ -38,13 +40,17 @@ public class PositiveSq {
         Long startTime = System.currentTimeMillis();
         try {
             DataInputStream inputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(file), Utils.Buffer_Size));
+
             while(true){
                     //Step1: 读取废字段
-                     int stop = inputStream.read(wastewords);
-                if(!new String(wastewords,0,10).equals("|mysql-bin")){
-                    System.out.println("!!!");
-                }
-                     if(stop == -1) return;
+                      stop = inputStream.skip(Length);
+        //        if(!new String(wastewords,0,10).equals("|mysql-bin")){
+       //             System.out.println("!!!");
+        //        }
+                     if(stop<Length) {
+                         return;
+                     }
+                JJ++;
                 handleIUD(inputStream);
             }
         } catch (FileNotFoundException e) {
@@ -52,10 +58,14 @@ public class PositiveSq {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        catch (Exception e){
+            System.out.println(JJ);
+        }
     }
     private static void handleIUD(DataInputStream inputStream) throws IOException {
         while (inputStream.read(operation)!=-1) {
             //Step2: 读取操作符
+ //       inputStream.read(operation);
             switch (operation[0]) {
                 case 'I':
                     passline(inputStream, 3);
@@ -71,9 +81,9 @@ public class PositiveSq {
                     passline(inputStream, 3);
                     System.arraycopy(linkscore(inputStream, namelist), 0, readdata, 12, 4);   //读 分 数
                     byte tmpb = inputStream.readByte(); //吃掉 '\n'
-                    if (tmpb != '\n') {
-                        System.out.println("!!");
-                    }
+//                    if (tmpb != '\n') {
+//                        System.out.println("!!");
+//                    }
                     return;
 
                 case 'U':
@@ -103,23 +113,27 @@ public class PositiveSq {
                                 System.arraycopy(linkscore(inputStream, namelist), 0, readupdate, pos, 4);   //读 分 数
                                 pos += 4;
                             }
-                        if (pos < 20) readupdate[pos] = '\t';
-                        return;
                     }
+                    if (pos < 20) readupdate[pos] = '\t';
+                    return;
 
                 case 'D':
                     passline(inputStream, 2);
                     beforeid = linkid(inputStream, namelist);
                     while (inputStream.readByte() != '\n') ;
                     return;
+
+//                default:
+//                    System.out.println(new String(wastewords));
+//                    System.out.println("NIMA");
             }
         }
     }
     public static void initMap() {
-        typemap.put((byte)'i', (byte)1);
-        typemap.put((byte)'a', (byte)2);
-        typemap.put((byte)'e', (byte)3);
-        typemap.put((byte)'c', (byte)4);
+        typemap.put((byte)'i', (byte)0);
+        typemap.put((byte)'a', (byte)3);
+        typemap.put((byte)'e', (byte)9);
+        typemap.put((byte)'c', (byte)12);
 
 
     }
