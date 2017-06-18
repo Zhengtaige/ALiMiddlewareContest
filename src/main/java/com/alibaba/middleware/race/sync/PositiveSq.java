@@ -13,155 +13,135 @@ import java.util.LinkedList;
  */
 public class PositiveSq {
     private static int Length = "|mysql-bin.00001882901|1497279993000|middleware5|student|".getBytes().length;
-    private static byte[] readdata = new byte[16];
-    private static byte[] readupdate = new byte[20];
+    private static byte[][] readdata;
     private static byte[] wastewords = new byte[Length];
     private static HashMap<Byte, Byte> typemap = new HashMap<Byte, Byte>();   //记录操作类型以及第几列属性
     private static long reflectarea = 0;
     private static LinkedList<Byte> namelist = new LinkedList<Byte>();
     private static String beforeid=null;
     private static String afterid = null;
-    private static byte[] operation = new byte[1];
+    private static byte operation ;
     private static byte[] first = new byte[3];
     private static byte[] last = new byte[6];
     private static byte[] readsex = new byte[3];
     private static byte[] score = new byte[4];
-    private static byte[] type = new byte[1];
+    private static byte type;
     private static long stop;
     private static long JJ = 0;
     public static void main(String[] args) throws IOException {
         long t1 = System.currentTimeMillis();
         initMap();
-        positiveread(new File("/Users/Nick_Zhengtaige/Desktop/A/canal.txt"));
+        positiveread();
         System.out.println(System.currentTimeMillis()-t1);
     }
 
-    public static void positiveread(File file) {
+    public static void positiveread() {
         Long startTime = System.currentTimeMillis();
-        try {
-            DataInputStream inputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(file), Utils.Buffer_Size));
-
-            while(true){
+        for (int i = 1; i <= 10; i++) {
+            try {
+                FileChannel fileChannel = new RandomAccessFile("E:\\__下载\\Data_Ali\\" + i + ".txt", "r").getChannel();
+                MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
+                while (true) {
                     //Step1: 读取废字段
-                      stop = inputStream.skip(Length);
-        //        if(!new String(wastewords,0,10).equals("|mysql-bin")){
-       //             System.out.println("!!!");
-        //        }
-                     if(stop<Length) {
-                         return;
-                     }
-                JJ++;
-                handleIUD(inputStream);
+                    mappedByteBuffer.position(mappedByteBuffer.position() + Length);
+                    JJ++;
+                    handleIUD(mappedByteBuffer);
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (IllegalArgumentException e){
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println(JJ);
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        catch (Exception e){
-            System.out.println(JJ);
-        }
+
+
     }
-    private static void handleIUD(DataInputStream inputStream) throws IOException {
-        while (inputStream.read(operation)!=-1) {
+    private static void handleIUD(MappedByteBuffer mappedByteBuffer) throws IOException {
+        while (true) {
+            operation=mappedByteBuffer.get();
             //Step2: 读取操作符
- //       inputStream.read(operation);
-            switch (operation[0]) {
+            switch (operation) {
                 case 'I':
-                    passline(inputStream, 3);
-                    afterid = linkid(inputStream, namelist);        //读 id
-                    passline(inputStream, 2);
-                    inputStream.read(first);      //读 姓
-                    System.arraycopy(first, 0, readdata, 0, 3);
-                    passline(inputStream, 3);
-                    System.arraycopy(linkname(inputStream, namelist), 0, readdata, 3, 6);   //读 名
-                    passline(inputStream, 2);
-                    inputStream.read(readsex);
-                    System.arraycopy(readsex, 0, readdata, 9, 3);
-                    passline(inputStream, 3);
-                    System.arraycopy(linkscore(inputStream, namelist), 0, readdata, 12, 4);   //读 分 数
-                    byte tmpb = inputStream.readByte(); //吃掉 '\n'
+                    readdata = new byte[4][];
+                    mappedByteBuffer.position(mappedByteBuffer.position()+13);
+                    afterid = linkid(mappedByteBuffer, namelist);        //读 id
+
+                    mappedByteBuffer.position(mappedByteBuffer.position()+20);
+                    mappedByteBuffer.get(first);      //读 姓
+
+                    readdata[0]=first;
+                    mappedByteBuffer.position(mappedByteBuffer.position()+20);
+                    readdata[1]=linkname(mappedByteBuffer, namelist);
+
+                    mappedByteBuffer.position(mappedByteBuffer.position()+13);
+                    mappedByteBuffer.get(readsex);
+                    readdata[2]=readsex;
+
+                    mappedByteBuffer.position(mappedByteBuffer.position()+16);
+                    readdata[3]=linkscore(mappedByteBuffer, namelist);
+                    byte tmpb = mappedByteBuffer.get(); //吃掉 '\n'
 //                    if (tmpb != '\n') {
 //                        System.out.println("!!");
 //                    }
                     return;
 
                 case 'U':
-                    passline(inputStream, 2);
-                    beforeid = linkid(inputStream, namelist);
-                    afterid = linkid(inputStream, namelist);
-                    int pos = 0;
-                        while (inputStream.readByte() != '\n') {
-                            type[0] = typemap.get(inputStream.readByte());  //读到类型
-                            System.arraycopy(type, 0, readupdate, pos, 1);
-                            pos++;
-                            passline(inputStream, 2);
-                            if (type[0] == 1) {
-                                inputStream.read(first);
-                                System.arraycopy(first, 0, readupdate, pos, 3);
-                                pos += 3;
-                                inputStream.readByte();
-                            } else if (type[0] == 2) {
-                                System.arraycopy(linkname(inputStream, namelist), 0, readupdate, pos, 6);   //读 名
-                                pos += 6;
-                            } else if (type[0] == 3) {
-                                inputStream.read(readsex);
-                                System.arraycopy(readsex, 0, readupdate, pos, 3);
-                                pos++;
-                                inputStream.readByte();
+                    readdata = new byte[4][];
+                    mappedByteBuffer.position(mappedByteBuffer.position()+8);
+                    beforeid = linkid(mappedByteBuffer, namelist);
+                    afterid = linkid(mappedByteBuffer, namelist);
+                        while (mappedByteBuffer.get() != '\n') {
+                            type = typemap.get(mappedByteBuffer.get());  //读到类型
+                            if (type == 0) {
+                                mappedByteBuffer.position(mappedByteBuffer.position()+17);
+                                mappedByteBuffer.get(first);
+                                readdata[type]=first;
+                                mappedByteBuffer.position(mappedByteBuffer.position()+1);
+                            } else if (type == 1) {
+                                mappedByteBuffer.position(mappedByteBuffer.position()+15);
+                                while(mappedByteBuffer.get()!='|');
+                                readdata[type]=linkname(mappedByteBuffer, namelist);
+                            } else if (type == 2) {
+                                mappedByteBuffer.position(mappedByteBuffer.position()+10);
+                                mappedByteBuffer.get(readsex);
+                                readdata[type]=readsex;
+                                mappedByteBuffer.position(mappedByteBuffer.position()+1);
                             } else {
-                                System.arraycopy(linkscore(inputStream, namelist), 0, readupdate, pos, 4);   //读 分 数
-                                pos += 4;
+                                mappedByteBuffer.position(mappedByteBuffer.position()+10);
+                                while(mappedByteBuffer.get()!='|');
+                                readdata[type]=linkscore(mappedByteBuffer, namelist);
                             }
                     }
-                    if (pos < 20) readupdate[pos] = '\t';
                     return;
 
                 case 'D':
-                    passline(inputStream, 2);
-                    beforeid = linkid(inputStream, namelist);
-                    while (inputStream.readByte() != '\n') ;
+                    mappedByteBuffer.position(mappedByteBuffer.position()+8);
+                    beforeid = linkid(mappedByteBuffer, namelist);
+                    mappedByteBuffer.position(mappedByteBuffer.position()+87);
+                    while (mappedByteBuffer.get() != '\n') ;
                     return;
 
-//                default:
-//                    System.out.println(new String(wastewords));
-//                    System.out.println("NIMA");
             }
         }
     }
     public static void initMap() {
         typemap.put((byte)'i', (byte)0);
-        typemap.put((byte)'a', (byte)3);
-        typemap.put((byte)'e', (byte)9);
-        typemap.put((byte)'c', (byte)12);
-
+        typemap.put((byte)'a', (byte)1);
+        typemap.put((byte)'e', (byte)2);
+        typemap.put((byte)'c', (byte)3);
 
     }
-    public static void passline(DataInputStream dis, int num){
-        try {
 
-            while(true){
-
-                    if(dis.readByte()=='|'){
-                        num--;
-                    }
-                    if(num == 0) return;
-
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    public static byte[] linkname(DataInputStream dis,LinkedList<Byte> name){
+    public static byte[] linkname(MappedByteBuffer mappedByteBuffer,LinkedList<Byte> name){
         while(true){
-            try {
-                byte temp = dis.readByte();
-                if(temp == '|') break;
-                else name.add(temp);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            byte temp = mappedByteBuffer.get();
+            if(temp == '|') break;
+            else name.add(temp);
         }
         byte[] res = new byte[6];
         for(int i=0;i<name.size();i++)  res[i] = name.get(i);
@@ -169,16 +149,11 @@ public class PositiveSq {
         name.clear();
         return res;
     }
-    public static byte[] linkscore(DataInputStream dis,LinkedList<Byte> score){
+    public static byte[] linkscore(MappedByteBuffer mappedByteBuffer,LinkedList<Byte> score){
         while(true){
-            try {
-                byte temp = dis.readByte();
-                if(temp == '|') break;
-                else score.add(temp);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            byte temp = mappedByteBuffer.get();
+            if(temp == '|') break;
+            else score.add(temp);
         }
         byte[] res = new byte[4];
         for(int i=0;i<score.size();i++)  res[i] = score.get(i);
@@ -188,16 +163,11 @@ public class PositiveSq {
         score.clear();
         return res;
     }
-    public static String linkid(DataInputStream dis,LinkedList<Byte> id){
+    public static String linkid(MappedByteBuffer mappedByteBuffer,LinkedList<Byte> id){
         while(true){
-            try {
-                byte temp = dis.readByte();
-                if(temp == '|') break;
-                else id.add(temp);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            byte temp = mappedByteBuffer.get();
+            if(temp == '|') break;
+            else id.add(temp);
         }
         byte[] res = new byte[id.size()];
         for(int i=0;i<id.size();i++)  res[i] = id.get(i);
