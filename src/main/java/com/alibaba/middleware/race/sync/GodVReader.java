@@ -6,9 +6,7 @@ import com.alibaba.middleware.race.sync.model.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -39,24 +37,73 @@ public class GodVReader {
     private boolean init = false;
 
     public static GodVReader getINSTANCE(int start, int end) {
+        if (INSTANCE.init) return INSTANCE;
 
         INSTANCE.start = start;
         INSTANCE.end = end;
 
-        INSTANCE.init = true;
-
         INSTANCE.finalMap = new ResultMap(start, end);
+
+        logger.info("[{}]init Key Map", System.currentTimeMillis());
+        for (long i = start + 1; i < end; i++) {
+            INSTANCE.primaryKeyMap.put(i, i);
+        }
+        logger.info("[{}]init Key Map done.", System.currentTimeMillis());
+
+        INSTANCE.init = true;
         return INSTANCE;
     }
 
     public static GodVReader getINSTANCE() {
-//        if (!INSTANCE.init) return null;
+        if (!INSTANCE.init) return null;
         return INSTANCE;
     }
 
     public static void main(String[] args) {
-        getINSTANCE(100, 1000000).doRead("1.txt");
-        getINSTANCE().getResult();
+//        getINSTANCE(100, 1000000).doRead("1.txt");
+//        getINSTANCE().getResult();
+        getINSTANCE(100, 1000000).copyFile(1);
+    }
+
+    public void copyFile(int i) {
+        String sourcePath = Constants.DATA_HOME + "/" + i + ".txt";
+        String destinationPath = Constants.MIDDLE_HOME + "/" + i + ".txt";
+
+        try {
+            InputStream in = new FileInputStream(new File(sourcePath));
+            OutputStream out = new FileOutputStream(new File(destinationPath));
+            int verticalBarNum;
+            int temp;
+            int ii = 0;
+            System.out.println((int) '\n');
+            while (true) {
+                ii++;
+                if (ii > 8889100) System.out.println(ii);
+                verticalBarNum = 0;
+                temp = in.read();
+                //System.out.println((char)(temp));
+                if (temp == '|') verticalBarNum++;
+                else if (temp == '\0') break;
+
+                do {
+                    temp = in.read();//System.out.println((char)(temp));
+                    if (temp == '|') verticalBarNum++;
+                } while (verticalBarNum != 5);
+
+                while (true) {
+                    temp = in.read();//System.out.println(temp);
+                    out.write(temp);
+                    if (temp == '\n') break;
+                }
+
+            }
+            out.close();
+            in.close();
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public void doRead(String sourceFileName) {
@@ -82,11 +129,6 @@ public class GodVReader {
 
 
 //        primaryKeyMap = new ResultMap(start, end);
-        logger.info("[{}]init Key Map", System.currentTimeMillis());
-        for (long i = start + 1; i < end; i++) {
-            primaryKeyMap.put(i, i);
-        }
-        logger.info("[{}]init Key Map done.", System.currentTimeMillis());
 
         Row row;
         while (primaryKeyMap.size() != 0) {
