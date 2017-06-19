@@ -14,7 +14,7 @@ import java.util.LinkedList;
  */
 public class PositiveSq {
     static Logger logger = LoggerFactory.getLogger(PositiveSq.class);
-    private static int Length = 57;
+    private static int Length = 55;
     private static byte[][] readdata;
     private static HashMap<Byte, Byte> typemap = new HashMap<Byte, Byte>();   //记录操作类型以及第几列属性
     private static LinkedList<Byte> namelist = new LinkedList<Byte>();
@@ -24,28 +24,27 @@ public class PositiveSq {
     private static byte[] first = new byte[3];
     private static byte[] readsex = new byte[3];
     private static byte type;
-    public static void main(String[] args) throws IOException {
-        long t1 = System.currentTimeMillis();
-        initMap();
-        new Thread(new middleResultHandler()).start();
-        positiveread();
-//        System.out.println(System.currentTimeMillis()-t1);
-        logger.info("{}", System.currentTimeMillis()-t1);
-    }
+//    public static void main(String[] args) throws IOException {
+//        long t1 = System.currentTimeMillis();
+//        initMap();
+//        new Thread(new middleResultHandler()).start();
+//        positiveread();
+////        logger.info("{}", updateidnum);
+//        logger.info("{}", System.currentTimeMillis()-t1);
+//    }
 
     public static void testTime(){
         long t1 = System.currentTimeMillis();
         initMap();
         new Thread(new middleResultHandler()).start();
         positiveread();
-//        System.out.println(System.currentTimeMillis()-t1);
         logger.info("{}", System.currentTimeMillis()-t1);
     }
 
     public static void positiveread() {
-        for (int i = 1; i <= 1; i++) {
+        for (int i = 1; i <= 10; i++) {
             try {
-                FileChannel fileChannel = new RandomAccessFile(Constants.LOCAL_DATA_HOME+"/" + i + ".txt", "r").getChannel();
+                FileChannel fileChannel = new RandomAccessFile(Constants.DATA_HOME+"/" + i + ".txt", "r").getChannel();
                 MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
                 while (true) {
                     //Step1: 读取废字段
@@ -53,11 +52,11 @@ public class PositiveSq {
                     handleIUD(mappedByteBuffer);
                 }
             } catch (IllegalArgumentException e){
-                logger.info("{}","文件读取完毕!");
+                logger.info("{}",i+"文件读取完毕!");
             }
             catch (Exception e) {
-//                logger.info("{}", e.getMessage());
-                e.printStackTrace();
+                logger.info("{}", e.getMessage());
+//                logger.info(e.getMessage());
             }
         }
         Binlog binlog = new Binlog();
@@ -90,6 +89,7 @@ public class PositiveSq {
                     mappedByteBuffer.position(mappedByteBuffer.position()+16);
                     readdata[3]=linkscore(mappedByteBuffer, namelist);
                     mappedByteBuffer.get(); //吃掉 '\n'
+
                     binlog.setId(afterid);
                     binlog.setOperation(operation);
                     binlog.setData(readdata);
@@ -122,7 +122,7 @@ public class PositiveSq {
                                 while(mappedByteBuffer.get()!='|');
                                 readdata[type]=linkscore(mappedByteBuffer, namelist);
                             }
-                    }
+                        }
                     binlog.setId(beforeid);
                     binlog.setOperation(operation);
                     binlog.setData(readdata);
