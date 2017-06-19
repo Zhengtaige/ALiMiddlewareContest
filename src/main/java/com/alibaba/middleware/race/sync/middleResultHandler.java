@@ -18,7 +18,7 @@ public class middleResultHandler implements Runnable{
         for (int i = 0; i < 10; i++) {
             resultMap.put((char)(i+48),new HashMap<String, byte[][]>());
         }
-        logger.info("{}",System.currentTimeMillis()-t1);
+
     }
     @Override
     public void run() {
@@ -26,7 +26,8 @@ public class middleResultHandler implements Runnable{
             while(true) {
                 Binlog binlog = Utils.binlogQueue.take();
                 if (binlog.getId() == null) {
-                    System.out.println("处理中间结果结束!");
+                    logger.info("{}","处理中间结果结束!");
+                    logger.info("{}",System.currentTimeMillis()-t1);
                     return;
                 }
                 switch (binlog.getOperation()) {
