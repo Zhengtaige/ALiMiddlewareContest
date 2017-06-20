@@ -10,6 +10,7 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -45,12 +46,12 @@ public class Server {
 //        for (int i = 0; i < 100; i++) { //防止后面的log被截断
         logger.info("Start Server.... {}", params);
 //        }
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                PositiveSq.testTime();
-            }
-        }).start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                PositiveSq.testTime();
+//            }
+//        }).start();
 
 //        File file = new File(Constants.DATA_HOME);
 //        File[] fileList = file.listFiles();
@@ -61,37 +62,37 @@ public class Server {
 //        }
 
         //直接开始读文件
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                logger.info("start FileReader");
-//                for (int j = 10; j > 0; j--) {
-//                    long start = System.currentTimeMillis();
-//                    FileReader.readOneFile(new File(Constants.DATA_HOME + "/" + j + ".txt"), schemaName, tableName, startPkId, endPkId);
-//                    logger.info("FileReader read file{}.txt cost {}", j, System.currentTimeMillis() - start);
-//                }
-                /*logger.info("[{}]start copy file.", System.currentTimeMillis());
-                for (int i = 1; i < 11; i++) {
-                    try {
-                        Files.copy(Paths.get(Constants.DATA_HOME + "/" + i + ".txt"),
-                                Paths.get(Constants.MIDDLE_HOME + "/" + i + ".txt"));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                logger.info("[{}]copy done.", System.currentTimeMillis());
-
-                logger.info("start GodVReader");
-                GodVReader reader = GodVReader.getINSTANCE(
-                        Server.startPkId,
-                        Server.endPkId);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                logger.info("start FileReader");
                 for (int j = 10; j > 0; j--) {
-                    reader.doRead(j + ".txt");
+                    long start = System.currentTimeMillis();
+                    FileReader.readOneFile(new File(Constants.DATA_HOME + "/" + j + ".txt"), schemaName, tableName, startPkId, endPkId);
+                    logger.info("FileReader read file[{}.txt] cost {}", j, System.currentTimeMillis() - start);
                 }
-                reader.getResult();
-                reader.done = true;*/
-//            }
-//        }).start();
+//                logger.info("[{}]start copy file.", System.currentTimeMillis());
+//                for (int i = 1; i < 11; i++) {
+//                    try {
+//                        Files.copy(Paths.get(Constants.DATA_HOME + "/" + i + ".txt"),
+//                                Paths.get(Constants.MIDDLE_HOME + "/" + i + ".txt"));
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//                logger.info("[{}]copy done.", System.currentTimeMillis());
+//
+//                logger.info("start GodVReader");
+//                GodVReader reader = GodVReader.getINSTANCE(
+//                        Server.startPkId,
+//                        Server.endPkId);
+//                for (int j = 10; j > 0; j--) {
+//                    reader.doRead(j + ".txt");
+//                }
+//                reader.getResult();
+//                reader.done = true;
+            }
+        }).start();
 
         server.startServer(5527);
     }

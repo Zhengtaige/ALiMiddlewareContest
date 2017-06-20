@@ -4,6 +4,7 @@ package com.alibaba.middleware.race.sync;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Random;
 
 /**
@@ -11,12 +12,17 @@ import java.util.Random;
  */
 public class Test {
     public static void main(String[] args) throws IOException {
-        RandomAccessFile randomAccessFile = new RandomAccessFile("/home/admin/middle/7721890v3f/Result.rs", "r");
-        randomAccessFile.skipBytes((int) (randomAccessFile.length() - 3));
-        System.out.println(randomAccessFile.read());
-        System.out.println(randomAccessFile.read());
-        System.out.println(randomAccessFile.read());
-        System.out.println(randomAccessFile.read());
+//        RandomAccessFile randomAccessFile = new RandomAccessFile("/home/admin/middle/7721890v3f/Result.rs", "r");
+//        randomAccessFile.skipBytes((int) (randomAccessFile.length() - 3));
+//        System.out.println(randomAccessFile.read());
+//        System.out.println(randomAccessFile.read());
+//        System.out.println(randomAccessFile.read());
+//        System.out.println(randomAccessFile.read());
+        HashSet<String> test = new HashSet<>();
+        test.add("1");
+        test.add("2");
+        test.add("3");
+        System.out.println(test);
     }
 
     public static void main11(String[] args) throws IOException {

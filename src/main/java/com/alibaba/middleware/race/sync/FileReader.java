@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,7 +20,7 @@ public class FileReader {
     private static Logger logger = LoggerFactory.getLogger(FileReader.class);
 
     public static void main(String[] args) throws IOException {
-        analasiseKey(new File(Constants.DATA_HOME + "/" + "1.txt"), "middleware5", "student", 100, 200);
+        readOneFile(new File(Constants.DATA_HOME + "/" + "1.txt"), "middleware5", "student", 100, 200);
     }
 
 
@@ -48,6 +47,8 @@ public class FileReader {
         int totalInArrangeKeyChange = 0;
         Set<String> schemaSets = new HashSet<>();
         Set<String> tableSets = new HashSet<>();
+        int keyMax = 0;
+        int keyMin = Integer.MIN_VALUE;
         logger.info("start read {}", file.getName());
         for (; mappedByteBuffer.hasRemaining(); ) {
             if (mappedByteBuffer.get(mappedByteBuffer.position()) == '\0') { //尝试读取下一个byte（不改变position），”\0“为文件结束
@@ -78,6 +79,10 @@ public class FileReader {
             //修改主键的情况
             int keyBefore = readIntArea(mappedByteBuffer, 1);
             int keyAfter = readIntArea(mappedByteBuffer, 1);
+            if (keyAfter > keyMax) keyMax = keyAfter;
+            if (keyBefore > keyMax) keyMax = keyBefore;
+            if (keyAfter < keyMin) keyMin = keyAfter;
+            if (keyBefore < keyMin) keyMin = keyBefore;
 
             //是否在区间内操作的统计
             switch (operation) {
@@ -113,23 +118,24 @@ public class FileReader {
                         break;
                     }
                     gotI = true;
+                    logger.info("Insert:" + readLine(mappedByteBuffer, true));
 
-                    Column column = readColume(mappedByteBuffer);
-                    logger.info(column.toString());
-                    System.out.println("-value:" + new String(readArea(mappedByteBuffer, 2)));
-                    column = readColume(mappedByteBuffer);
-                    logger.info(column.toString());
-                    logger.info("-value:" + new String(readArea(mappedByteBuffer, 2)));
-                    column = readColume(mappedByteBuffer);
-                    logger.info(column.toString());
-                    byte[] sex = readArea(mappedByteBuffer, 2);
-                    logger.info(new String(sex));
-                    logger.info(Arrays.equals(sex, new byte[]{-25, -108, -73}) ? "男" : "女"); //男：0,女：1
-
-                    column = readColume(mappedByteBuffer);
-                    logger.info(column.toString());
-                    logger.info("-value:" + new String(readArea(mappedByteBuffer, 2)));
-                    mappedByteBuffer.get(); //跳过最后的"|"
+//                    Column column = readColume(mappedByteBuffer);
+//                    logger.info(column.toString());
+//                    System.out.println("-value:" + new String(readArea(mappedByteBuffer, 2)));
+//                    column = readColume(mappedByteBuffer);
+//                    logger.info(column.toString());
+//                    logger.info("-value:" + new String(readArea(mappedByteBuffer, 2)));
+//                    column = readColume(mappedByteBuffer);
+//                    logger.info(column.toString());
+//                    byte[] sex = readArea(mappedByteBuffer, 2);
+//                    logger.info(new String(sex));
+//                    logger.info(Arrays.equals(sex, new byte[]{-25, -108, -73}) ? "男" : "女"); //男：0,女：1
+//
+//                    column = readColume(mappedByteBuffer);
+//                    logger.info(column.toString());
+//                    logger.info("-value:" + new String(readArea(mappedByteBuffer, 2)));
+//                    mappedByteBuffer.get(); //跳过最后的"|"
                     break;
                 case 'U':
                     //正常情况
@@ -155,16 +161,16 @@ public class FileReader {
 
         Long endTime = System.currentTimeMillis();
 
-        logger.info(String.format("file(%s) cost: %s, operation num: %s, in arrange: %s, update primary key: %s, out->in primary key: %s, in->in primary key: %s",
-                file.getName(), (endTime - startTime), totalOperationForTable, totalOperationForStarAndEnd, totalOperationUpdatePK, totalOutToIn, totalInArrangeKeyChange));
-        logger.info("Schema num: {}", schemaSets.size());
-        for (String s : schemaSets) {
-            logger.info(s);
-        }
-        logger.info("Table num: {}", tableSets.size());
-        for (String s : tableSets) {
-            logger.info(s);
-        }
+        logger.info(String.format("file(%s) cost: %s, operation num: %s, in arrange: %s, update primary key: %s, out->in primary key: %s, in->in primary key: %s, key max: %d, key min %d",
+                file.getName(), (endTime - startTime), totalOperationForTable, totalOperationForStarAndEnd, totalOperationUpdatePK, totalOutToIn, totalInArrangeKeyChange, keyMax, keyMin));
+        logger.info("Schema num: {}, they are: {}", schemaSets.size(), schemaSets);
+//        for (String s : schemaSets) {
+//            logger.info(s);
+//        }
+        logger.info("Table num: {}, they are: {}", tableSets.size(), tableSets);
+//        for (String s : tableSets) {
+//            logger.info(s);
+//        }
     }
 
 
