@@ -95,15 +95,15 @@
         <appender-ref ref="FILE_CLIENT"/>
     </logger>
 
-    <!--<logger name="com.alibaba.middleware.race.sync.PositiveSq" additivity="false">-->
-    <!--<level value="INFO"/>-->
-    <!--<appender-ref ref="FILE_SERVER"/>-->
-    <!--</logger>-->
+    <logger name="com.alibaba.middleware.race.sync.PositiveSq" additivity="false">
+        <level value="INFO"/>
+        <appender-ref ref="FILE_SERVER"/>
+    </logger>
 
-    <!--<logger name="com.alibaba.middleware.race.sync.middleResultHandler" additivity="false">-->
-    <!--<level value="INFO"/>-->
-    <!--<appender-ref ref="FILE_SERVER"/>-->
-    <!--</logger>-->
+    <logger name="com.alibaba.middleware.race.sync.middleResultHandler" additivity="false">
+        <level value="INFO"/>
+        <appender-ref ref="FILE_SERVER"/>
+    </logger>
 
 
     <root>

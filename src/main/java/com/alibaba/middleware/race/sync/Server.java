@@ -61,9 +61,9 @@ public class Server {
 //        }
 
         //直接开始读文件
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
 //                logger.info("start FileReader");
 //                for (int j = 10; j > 0; j--) {
 //                    long start = System.currentTimeMillis();
@@ -90,9 +90,8 @@ public class Server {
                 }
                 reader.getResult();
                 reader.done = true;*/
-                PositiveSq.testTime();
-            }
-        }).start();
+//            }
+//        }).start();
 
         server.startServer(5527);
     }

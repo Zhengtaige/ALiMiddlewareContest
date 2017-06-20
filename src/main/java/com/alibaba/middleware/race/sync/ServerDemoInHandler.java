@@ -63,8 +63,8 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
 //            }
 //        });
 
-        GodVReader reader = GodVReader.getINSTANCE();
-        while (!reader.done) {
+//        GodVReader reader = GodVReader.getINSTANCE();
+        while (!middleResultHandler.resultReleased) {
             Thread.sleep(100);
         }
 

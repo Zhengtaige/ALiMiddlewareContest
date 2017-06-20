@@ -15,9 +15,11 @@ import java.util.Map;
  * Created by Then on 2017/6/16.
  */
 public class middleResultHandler implements Runnable{
+    public static boolean resultReleased = false;
     Logger logger = LoggerFactory.getLogger(middleResultHandler.class);
     Map<Character,Map<String,byte[][]>> resultMap = new HashMap<>();
     long t1;
+
     public middleResultHandler(){
         t1=System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
@@ -126,6 +128,7 @@ public class middleResultHandler implements Runnable{
             e.printStackTrace();
         }
         logger.info("[{}]release result done.", System.currentTimeMillis());
+        resultReleased = true;
 
     }
 }
