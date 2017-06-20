@@ -94,6 +94,7 @@ public class FileReader {
                 case 'U':
                     if ((keyBefore > start && keyBefore < end) || (keyBefore > start && keyBefore < end)) {
                         totalOperationForStarAndEnd++;
+
                         if (keyBefore != keyAfter){ //改主键的行为
                             totalOperationUpdatePK++;
                             if ((keyBefore > end || keyBefore < start) && (keyAfter > start && keyAfter < end)) //外面跑里面
@@ -101,6 +102,7 @@ public class FileReader {
                             if ((keyBefore < end && keyBefore > start) && (keyAfter > start && keyAfter < end)) //里面改里面
                                 totalInArrangeKeyChange++;
                         }
+
                     }
             }
 
