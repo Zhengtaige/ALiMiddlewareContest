@@ -48,6 +48,12 @@ public class Server {
 //        for (int i = 0; i < 100; i++) { //防止后面的log被截断
         logger.info("Start Server.... {}", params);
 //        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                PositiveSq.testTime();
+            }
+        }).start();
 
 //        File file = new File(Constants.DATA_HOME);
 //        File[] fileList = file.listFiles();

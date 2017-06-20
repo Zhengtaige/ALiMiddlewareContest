@@ -10,7 +10,7 @@ interface Constants {
     // 工作主目录
 //    String TESTER_HOME = "/home/autulin/middlewareRace";
 //    // 赛题数据
-//    String DATA_HOME = "/home/autulin/middlewareRace/canal_data";
+    String LOCAL_DATA_HOME = "E:\\__下载\\Data_Ali";
 //    // 结果文件目录
 //    String RESULT_HOME = "/home/autulin/middlewareRace/user_result";
 ////     中间结果目录
@@ -32,7 +32,7 @@ interface Constants {
     // 中间结果目录（client和server都会用到）
     String MIDDLE_HOME = "/home/admin/middle/7721890v3f/";
 
-    //     结果文件的命名
+    //结果文件的命名
     String RESULT_FILE_NAME = "Result.rs";
 
 }
