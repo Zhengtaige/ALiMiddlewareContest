@@ -3,6 +3,11 @@ package com.alibaba.middleware.race.sync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,7 +33,7 @@ public class middleResultHandler implements Runnable{
                 if (binlog.getId() == null) {
                     logger.info("{}","处理中间结果结束!");
                     logger.info("{}",System.currentTimeMillis()-t1);
-                    return;
+                    break;
                 }
                 switch (binlog.getOperation()) {
                     case 'I':
@@ -42,6 +47,8 @@ public class middleResultHandler implements Runnable{
                         break;
                 }
             }
+
+            releaseResult(); //结束处理，生成结果文件
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -78,5 +85,47 @@ public class middleResultHandler implements Runnable{
             map = resultMap.get(id.charAt(id.length()-1));
             map.put(binlog.getNewid(),olddata);
         }
+    }
+
+    public void releaseResult() {
+        logger.info("[{}]start release result", System.currentTimeMillis());
+        FileChannel channel;
+        try {
+            RandomAccessFile randomAccessFile = new RandomAccessFile(new File(Constants.MIDDLE_HOME + Constants.RESULT_FILE_NAME), "rw");
+            channel = randomAccessFile.getChannel();
+            for (long i = Server.startPkId + 1; i < Server.endPkId; i++) {
+                String id = String.valueOf(i);
+                char random = id.charAt(id.length() - 1);
+                if (resultMap.containsKey(random)) {
+                    Map<String, byte[][]> result = resultMap.get(random);
+                    if (result.containsKey(id)) {
+                        ByteBuffer byteBuffer = ByteBuffer.allocate(256);
+                        byte[][] colomns = result.get(id);
+
+                        byteBuffer.put(id.getBytes()); // id
+                        byteBuffer.put((byte) 9); // \t
+                        for (int j = 0; j < colomns.length - 1; j++) {
+                            byteBuffer.put(colomns[j]);
+                            byteBuffer.put((byte) 9); // \t
+                        }
+                        byteBuffer.put(colomns[colomns.length - 1]);
+                        byteBuffer.put((byte) 10); // \n
+                        byteBuffer.flip();
+//                    System.out.println(byteBuffer.position() + "," + byteBuffer.limit());
+//                    System.out.println(new String(byteBuffer.array()));
+                        while (byteBuffer.hasRemaining()) {
+                            channel.write(byteBuffer);
+                        }
+                    }
+                }
+
+            }
+            channel.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        logger.info("[{}]release result done.", System.currentTimeMillis());
+
     }
 }
