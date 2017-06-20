@@ -11,6 +11,15 @@ import java.util.Random;
  */
 public class Test {
     public static void main(String[] args) throws IOException {
+        RandomAccessFile randomAccessFile = new RandomAccessFile("/home/admin/sync_results/7721890v3f/Result.rs", "r");
+        randomAccessFile.skipBytes((int) (randomAccessFile.length() - 3));
+        System.out.println(randomAccessFile.read());
+        System.out.println(randomAccessFile.read());
+        System.out.println(randomAccessFile.read());
+        System.out.println(randomAccessFile.read());
+    }
+
+    public static void main11(String[] args) throws IOException {
         long start = System.currentTimeMillis();
         int headLength = "|mysql-bin.000018470858532|1496828214000|middleware5|student|".length();
         FileInputStream fileInputStream = new FileInputStream(new File(Constants.TESTER_HOME + "/1.txt"));

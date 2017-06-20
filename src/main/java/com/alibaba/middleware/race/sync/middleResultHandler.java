@@ -95,7 +95,7 @@ public class middleResultHandler implements Runnable{
         try {
             RandomAccessFile randomAccessFile = new RandomAccessFile(new File(Constants.MIDDLE_HOME + Constants.RESULT_FILE_NAME), "rw");
             channel = randomAccessFile.getChannel();
-            for (long i = Server.startPkId + 1; i < Server.endPkId; i++) {
+            for (long i = Server.startPkId + 1; i < Server.endPkId - 1; i++) {
                 String id = String.valueOf(i);
                 char random = id.charAt(id.length() - 1);
                 if (resultMap.containsKey(random)) {
@@ -112,16 +112,38 @@ public class middleResultHandler implements Runnable{
                         }
                         byteBuffer.put(colomns[colomns.length - 1]);
                         byteBuffer.put((byte) 10); // \n
+
                         byteBuffer.flip();
-
-                        if (i < Server.startPkId + 50) logger.info(new String(byteBuffer.array()));
-
                         while (byteBuffer.hasRemaining()) {
                             channel.write(byteBuffer);
                         }
                     }
                 }
 
+            }
+            String id = String.valueOf(Server.endPkId - 1);
+            char random = id.charAt(id.length() - 1);
+            if (resultMap.containsKey(random)) {
+                Map<String, byte[][]> result = resultMap.get(random);
+                if (result.containsKey(id)) {
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(256);
+                    byte[][] colomns = result.get(id);
+
+                    byteBuffer.put(id.getBytes()); // id
+                    byteBuffer.put((byte) 9); // \t
+                    for (int j = 0; j < colomns.length - 1; j++) {
+                        byteBuffer.put(colomns[j]);
+                        byteBuffer.put((byte) 9); // \t
+                    }
+                    byteBuffer.put(colomns[colomns.length - 1]);
+
+                    byteBuffer.put((byte) '\0'); // \n
+
+                    byteBuffer.flip();
+                    while (byteBuffer.hasRemaining()) {
+                        channel.write(byteBuffer);
+                    }
+                }
             }
             channel.close();
 
