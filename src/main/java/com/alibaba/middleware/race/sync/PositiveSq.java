@@ -3,7 +3,8 @@ package com.alibaba.middleware.race.sync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
@@ -76,6 +77,7 @@ public class PositiveSq {
                     afterid = linkid(mappedByteBuffer, namelist);        //读 id
 
                     mappedByteBuffer.position(mappedByteBuffer.position()+20);
+                    first = new byte[3];
                     mappedByteBuffer.get(first);      //读 姓
 
                     readdata[0]=first;
@@ -83,6 +85,7 @@ public class PositiveSq {
                     readdata[1]=linkname(mappedByteBuffer, namelist);
 
                     mappedByteBuffer.position(mappedByteBuffer.position()+13);
+                    readsex = new byte[3];
                     mappedByteBuffer.get(readsex);
                     readdata[2]=readsex;
 
@@ -105,6 +108,7 @@ public class PositiveSq {
                             type = typemap.get(mappedByteBuffer.get());  //读到类型
                             if (type == 0) {
                                 mappedByteBuffer.position(mappedByteBuffer.position()+17);
+                                first = new byte[3];
                                 mappedByteBuffer.get(first);
                                 readdata[type]=first;
                                 mappedByteBuffer.position(mappedByteBuffer.position()+1);
@@ -114,6 +118,7 @@ public class PositiveSq {
                                 readdata[type]=linkname(mappedByteBuffer, namelist);
                             } else if (type == 2) {
                                 mappedByteBuffer.position(mappedByteBuffer.position()+10);
+                                readsex = new byte[3];
                                 mappedByteBuffer.get(readsex);
                                 readdata[type]=readsex;
                                 mappedByteBuffer.position(mappedByteBuffer.position()+1);
