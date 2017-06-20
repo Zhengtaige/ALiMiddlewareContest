@@ -113,20 +113,20 @@ public class FileReader {
                     gotI = true;
 
                     Column column = readColume(mappedByteBuffer);
-                    System.out.print(column);
+                    logger.info(column.toString());
                     System.out.println("-value:" + new String(readArea(mappedByteBuffer, 2)));
                     column = readColume(mappedByteBuffer);
-                    System.out.print(column);
-                    System.out.println("-value:" + new String(readArea(mappedByteBuffer, 2)));
+                    logger.info(column.toString());
+                    logger.info("-value:" + new String(readArea(mappedByteBuffer, 2)));
                     column = readColume(mappedByteBuffer);
-                    System.out.print(column);
+                    logger.info(column.toString());
                     byte[] sex = readArea(mappedByteBuffer, 2);
-                    System.out.print(new String(sex));
-                    System.out.println(Arrays.equals(sex, new byte[]{-25, -108, -73}) ? 0 : 1); //男：0,女：1
+                    logger.info(new String(sex));
+                    logger.info(Arrays.equals(sex, new byte[]{-25, -108, -73}) ? "男" : "女"); //男：0,女：1
 
                     column = readColume(mappedByteBuffer);
-                    System.out.print(column);
-                    System.out.println("-value:" + new String(readArea(mappedByteBuffer, 2)));
+                    logger.info(column.toString());
+                    logger.info("-value:" + new String(readArea(mappedByteBuffer, 2)));
                     mappedByteBuffer.get(); //跳过最后的"|"
                     break;
                 case 'U':
@@ -136,7 +136,7 @@ public class FileReader {
                         break;
                     }
                     gotU = true;
-                    System.out.println("Update:" + readLine(mappedByteBuffer, true));
+                    logger.info("Update:" + readLine(mappedByteBuffer, true));
                     break;
                 case 'D':
                     if (gotD) {
@@ -144,10 +144,10 @@ public class FileReader {
                         break;
                     }
                     gotD = true;
-                    System.out.println("Delete:" + readLine(mappedByteBuffer, true));
+                    logger.info("Delete:" + readLine(mappedByteBuffer, true));
                     break;
                 default:
-                    System.out.println(readLine(mappedByteBuffer, true));
+                    logger.info(readLine(mappedByteBuffer, true));
             }
         }
 
@@ -206,13 +206,13 @@ public class FileReader {
             int keyAfter = readIntArea(mappedByteBuffer, 1);
 
             if (keyBefore == destination) {
-                System.out.println(keyBefore + "->" + keyAfter);
-                System.out.println(readLine(mappedByteBuffer, true));
+                logger.info(keyBefore + "->" + keyAfter);
+                logger.info(readLine(mappedByteBuffer, true));
                 if (keyAfter == -1) return;
                 destination = keyAfter;
             } else if (keyAfter == destination) {
-                System.out.println(keyBefore + "->" + keyAfter);
-                System.out.println(readLine(mappedByteBuffer, true));
+                logger.info(keyBefore + "->" + keyAfter);
+                logger.info(readLine(mappedByteBuffer, true));
             }
         }
     }
