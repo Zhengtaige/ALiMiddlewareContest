@@ -43,7 +43,13 @@ public class Server {
 //        for (int i = 0; i < 100; i++) { //防止后面的log被截断
             logger.info("com.alibaba.middleware.race.sync.Server is running....");
 //        }
-        PositiveSq.testTime();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                PositiveSq.testTime();
+            }
+        }).start();
+
         server.startServer(5527);
     }
 

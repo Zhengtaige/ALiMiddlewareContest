@@ -28,6 +28,7 @@ public class Client {
         // 从args获取server端的ip
         ip = args[0];
         Client client = new Client();
+        Thread.sleep(80000); // sleep 80s
         client.connect(ip, port);
         String a="NIMA";
 

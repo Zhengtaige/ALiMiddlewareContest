@@ -8,8 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.MappedByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 处理client端的请求 Created by wanshao on 2017/5/25.
@@ -64,7 +62,7 @@ public class ServerDemoInHandler extends ChannelInboundHandlerAdapter {
         });
 
 
-        if (!inited) {
+        if (inited) { //不让他执行
             File file = new File(Constants.DATA_HOME);
             fileList = file.listFiles();
             for (File f :
