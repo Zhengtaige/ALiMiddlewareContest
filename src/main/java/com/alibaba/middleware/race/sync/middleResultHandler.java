@@ -113,8 +113,9 @@ public class middleResultHandler implements Runnable{
                         byteBuffer.put(colomns[colomns.length - 1]);
                         byteBuffer.put((byte) 10); // \n
                         byteBuffer.flip();
-//                    System.out.println(byteBuffer.position() + "," + byteBuffer.limit());
-//                    System.out.println(new String(byteBuffer.array()));
+
+                        if (i < Server.startPkId + 50) logger.info(new String(byteBuffer.array()));
+
                         while (byteBuffer.hasRemaining()) {
                             channel.write(byteBuffer);
                         }
