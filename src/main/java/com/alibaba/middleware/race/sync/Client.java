@@ -32,7 +32,7 @@ public class Client {
         Client client = new Client();
 
         logger.info("waiting...");
-//        Thread.sleep(60000);
+        Thread.sleep(60000);
 
         logger.info("start connect...");
         client.connect(ip, port);

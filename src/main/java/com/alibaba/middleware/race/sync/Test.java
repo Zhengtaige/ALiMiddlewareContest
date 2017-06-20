@@ -11,7 +11,7 @@ import java.util.Random;
  */
 public class Test {
     public static void main(String[] args) throws IOException {
-        RandomAccessFile randomAccessFile = new RandomAccessFile("/home/admin/sync_results/7721890v3f/Result.rs", "r");
+        RandomAccessFile randomAccessFile = new RandomAccessFile("/home/admin/middle/7721890v3f/Result.rs", "r");
         randomAccessFile.skipBytes((int) (randomAccessFile.length() - 3));
         System.out.println(randomAccessFile.read());
         System.out.println(randomAccessFile.read());
