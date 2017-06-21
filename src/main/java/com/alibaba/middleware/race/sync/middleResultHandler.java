@@ -35,9 +35,10 @@ public class middleResultHandler implements Runnable{
                     logger.info("{}","处理中间结果结束!");
                     logger.info("{}",System.currentTimeMillis()-t1);
                     break;
-                }else if(!Utils.isInRange(binlog.getId()) ){
-                    continue;
                 }
+//                else if(!Utils.isInRange(binlog.getId()) ){
+//                    continue;
+//                }
                 switch (binlog.getOperation()) {
                     case 'I':
                         insertRow(binlog);
@@ -59,13 +60,11 @@ public class middleResultHandler implements Runnable{
     }
 
     private void deleteRow(Binlog binlog){
-        long id = binlog.getId();
-        resultMap.remove(id);
+        resultMap.remove(binlog.getId());
     }
 
     private void insertRow(Binlog binlog){
-        long id = binlog.getId();
-        resultMap.put(id,binlog.getData());
+        resultMap.put(binlog.getId(),binlog.getData());
     }
 
     private void updateRow(Binlog binlog){
