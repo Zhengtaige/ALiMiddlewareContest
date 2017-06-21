@@ -118,45 +118,66 @@ public class PositiveSq {
                         while(mappedByteBuffer.get()!='\n');
                         return;
                     }else if(!Utils.isInRange(Long.valueOf(afterid))){
-                        binlog.setId(beforeid);
-                        binlog.setOperation((byte)'D');
-                        Utils.binlogQueue.offer(binlog);
-                        while(mappedByteBuffer.get()!='\n');
-                        return;
-                    }
                         while (mappedByteBuffer.get() != '\n') {
                             type = typemap.get(mappedByteBuffer.get());  //读到类型
                             if (type == 0) {
-                                mappedByteBuffer.position(mappedByteBuffer.position()+17);
-                                first = new byte[3];
-                                mappedByteBuffer.get(first);
-                                readdata[type]=first;
-                                mappedByteBuffer.position(mappedByteBuffer.position()+1);
+                                mappedByteBuffer.position(mappedByteBuffer.position()+21);
                             } else if (type == 1) {
-                                mappedByteBuffer.position(mappedByteBuffer.position()+15);
+                                mappedByteBuffer.position(mappedByteBuffer.position()+19);
                                 while(mappedByteBuffer.get()!='|');
-                                readdata[type]=linkname(mappedByteBuffer, namelist);
                             } else if (type == 2) {
-                                mappedByteBuffer.position(mappedByteBuffer.position()+10);
-                                readsex = new byte[3];
-                                mappedByteBuffer.get(readsex);
-                                readdata[type]=readsex;
-                                mappedByteBuffer.position(mappedByteBuffer.position()+1);
+                                mappedByteBuffer.position(mappedByteBuffer.position()+14);
                             } else {
-                    //            mappedByteBuffer.position(mappedByteBuffer.position()+10);         //ztg
+                                //            mappedByteBuffer.position(mappedByteBuffer.position()+10);         //ztg
                                 mappedByteBuffer.position(mappedByteBuffer.position()+3);
                                 if(mappedByteBuffer.get()!='2')        //score1
                                 {
-                                    mappedByteBuffer.position(mappedByteBuffer.position()+5);
+                                    mappedByteBuffer.position(mappedByteBuffer.position()+7);
                                 }
                                 else{
-                                    mappedByteBuffer.position(mappedByteBuffer.position()+6);
-                                    type++;
+                                    mappedByteBuffer.position(mappedByteBuffer.position()+8);
                                 }
                                 while(mappedByteBuffer.get()!='|');
-                                readdata[type]=linkscore(mappedByteBuffer, namelist);
                             }
                         }
+                        binlog.setId(beforeid);
+                        binlog.setOperation((byte)'D');
+                        Utils.binlogQueue.offer(binlog);
+                        return;
+                    }
+                    while (mappedByteBuffer.get() != '\n') {
+                        type = typemap.get(mappedByteBuffer.get());  //读到类型
+                        if (type == 0) {
+                            mappedByteBuffer.position(mappedByteBuffer.position()+17);
+                            first = new byte[3];
+                            mappedByteBuffer.get(first);
+                            readdata[type]=first;
+                            mappedByteBuffer.position(mappedByteBuffer.position()+1);
+                        } else if (type == 1) {
+                            mappedByteBuffer.position(mappedByteBuffer.position()+15);
+                            while(mappedByteBuffer.get()!='|');
+                            readdata[type]=linkname(mappedByteBuffer, namelist);
+                        } else if (type == 2) {
+                            mappedByteBuffer.position(mappedByteBuffer.position()+10);
+                            readsex = new byte[3];
+                            mappedByteBuffer.get(readsex);
+                            readdata[type]=readsex;
+                            mappedByteBuffer.position(mappedByteBuffer.position()+1);
+                        } else {
+                //            mappedByteBuffer.position(mappedByteBuffer.position()+10);         //ztg
+                            mappedByteBuffer.position(mappedByteBuffer.position()+3);
+                            if(mappedByteBuffer.get()!='2')        //score1
+                            {
+                                mappedByteBuffer.position(mappedByteBuffer.position()+5);
+                            }
+                            else{
+                                mappedByteBuffer.position(mappedByteBuffer.position()+6);
+                                type++;
+                            }
+                            while(mappedByteBuffer.get()!='|');
+                            readdata[type]=linkscore(mappedByteBuffer, namelist);
+                        }
+                    }
                     binlog.setId(beforeid);
                     binlog.setOperation(operation);
                     binlog.setData(readdata);
