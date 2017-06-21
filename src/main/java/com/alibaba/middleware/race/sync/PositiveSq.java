@@ -76,7 +76,7 @@ public class PositiveSq {
                     mappedByteBuffer.position(mappedByteBuffer.position()+13);
                     afterid = linkid(mappedByteBuffer, namelist);        //读 id
 
-                    if(!Utils.isInRange(Long.valueOf(afterid))){
+                    if(!Utils.isInRange(afterid)){
                         mappedByteBuffer.position(mappedByteBuffer.position()+99);
                         while(mappedByteBuffer.get()!='\n');
                         return;
@@ -113,10 +113,10 @@ public class PositiveSq {
                     mappedByteBuffer.position(mappedByteBuffer.position()+8);
                     beforeid = linkid(mappedByteBuffer, namelist);
                     afterid = linkid(mappedByteBuffer, namelist);
-                    if(!Utils.isInRange(Long.valueOf(beforeid)) ){
+                    if(!Utils.isInRange(beforeid) ){
                         while(mappedByteBuffer.get()!='\n');
                         return;
-                    }else if(!Utils.isInRange(Long.valueOf(afterid))){
+                    }else if(!Utils.isInRange(afterid)){
                         while (mappedByteBuffer.get() != '\n') {
                             type = typemap.get(mappedByteBuffer.get());  //读到类型
                             if (type == 0) {
@@ -190,7 +190,7 @@ public class PositiveSq {
                     mappedByteBuffer.position(mappedByteBuffer.position()+8);
                     beforeid = linkid(mappedByteBuffer, namelist);
 
-                    if(!Utils.isInRange(Long.valueOf(beforeid))){
+                    if(!Utils.isInRange(beforeid)){
                         mappedByteBuffer.position(mappedByteBuffer.position()+104);
                         while(mappedByteBuffer.get()!='\n');
                         return;
