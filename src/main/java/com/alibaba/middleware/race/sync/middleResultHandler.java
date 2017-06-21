@@ -95,7 +95,6 @@ public class middleResultHandler implements Runnable{
         try {
             RandomAccessFile randomAccessFile = new RandomAccessFile(new File(Constants.MIDDLE_HOME + Constants.RESULT_FILE_NAME), "rw");
             channel = randomAccessFile.getChannel();
-            boolean isFirst = true;
             for (long i = Server.startPkId + 1; i < Server.endPkId - 1; i++) {
                 String id = String.valueOf(i);
                 char random = id.charAt(id.length() - 1);
@@ -105,12 +104,6 @@ public class middleResultHandler implements Runnable{
                         ByteBuffer byteBuffer = ByteBuffer.allocate(256);
                         byte[][] colomns = result.get(id);
 
-                        if (!isFirst) {
-                            byteBuffer.put((byte) 10); // \n
-                        } else {
-                            isFirst = false;
-                        }
-
                         byteBuffer.put(id.getBytes()); // id
                         byteBuffer.put((byte) 9); // \t
                         for (int j = 0; j < colomns.length - 1; j++) {
@@ -118,7 +111,7 @@ public class middleResultHandler implements Runnable{
                             byteBuffer.put((byte) 9); // \t
                         }
                         byteBuffer.put(colomns[colomns.length - 1]);
-
+                        byteBuffer.put((byte) 10);
 
                         byteBuffer.flip();
                         while (byteBuffer.hasRemaining()) {
