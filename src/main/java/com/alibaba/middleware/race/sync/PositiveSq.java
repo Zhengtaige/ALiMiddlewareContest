@@ -72,7 +72,7 @@ public class PositiveSq {
             //Step2: 读取操作符
             switch (operation) {
                 case 'I':
-                    readdata = new byte[4][];
+                    readdata = new byte[5][];
                     mappedByteBuffer.position(mappedByteBuffer.position()+13);
                     afterid = linkid(mappedByteBuffer, namelist);        //读 id
 
@@ -91,7 +91,11 @@ public class PositiveSq {
 
                     mappedByteBuffer.position(mappedByteBuffer.position()+16);
                     readdata[3]=linkscore(mappedByteBuffer, namelist);
-                    mappedByteBuffer.get(); //吃掉 '\n'
+    //                mappedByteBuffer.get(); //吃掉 '\n'
+
+                    mappedByteBuffer.position(mappedByteBuffer.position()+16);      //ztg
+                    readdata[4]=linkscore(mappedByteBuffer,namelist);
+                    mappedByteBuffer.get();
 
                     binlog.setId(afterid);
                     binlog.setOperation(operation);
@@ -100,7 +104,7 @@ public class PositiveSq {
                     return;
 
                 case 'U':
-                    readdata = new byte[4][];
+                    readdata = new byte[5][];
                     mappedByteBuffer.position(mappedByteBuffer.position()+8);
                     beforeid = linkid(mappedByteBuffer, namelist);
                     afterid = linkid(mappedByteBuffer, namelist);
@@ -123,7 +127,16 @@ public class PositiveSq {
                                 readdata[type]=readsex;
                                 mappedByteBuffer.position(mappedByteBuffer.position()+1);
                             } else {
-                                mappedByteBuffer.position(mappedByteBuffer.position()+10);
+                    //            mappedByteBuffer.position(mappedByteBuffer.position()+10);         //ztg
+                                mappedByteBuffer.position(mappedByteBuffer.position()+3);
+                                if(mappedByteBuffer.get()!='2')        //score1
+                                {
+                                    mappedByteBuffer.position(mappedByteBuffer.position()+5);
+                                }
+                                else{
+                                    mappedByteBuffer.position(mappedByteBuffer.position()+6);
+                                    type++;
+                                }
                                 while(mappedByteBuffer.get()!='|');
                                 readdata[type]=linkscore(mappedByteBuffer, namelist);
                             }
@@ -140,7 +153,7 @@ public class PositiveSq {
                 case 'D':
                     mappedByteBuffer.position(mappedByteBuffer.position()+8);
                     beforeid = linkid(mappedByteBuffer, namelist);
-                    mappedByteBuffer.position(mappedByteBuffer.position()+87);
+                    mappedByteBuffer.position(mappedByteBuffer.position()+104);
                     while (mappedByteBuffer.get() != '\n') ;
                     binlog.setId(beforeid);
                     binlog.setOperation(operation);
