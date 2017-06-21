@@ -93,6 +93,7 @@ public class middleResultHandler implements Runnable{
         logger.info("[{}]start release result", System.currentTimeMillis());
         FileChannel channel;
         try {
+            int num = 0 ;
             RandomAccessFile randomAccessFile = new RandomAccessFile(new File(Constants.MIDDLE_HOME + Constants.RESULT_FILE_NAME), "rw");
             channel = randomAccessFile.getChannel();
             for (long i = Server.startPkId + 1; i < Server.endPkId - 1; i++) {
@@ -102,23 +103,39 @@ public class middleResultHandler implements Runnable{
                     Map<String, byte[][]> result = resultMap.get(random);
                     if (result.containsKey(id)) {
                         ByteBuffer byteBuffer = ByteBuffer.allocate(256);
-                        byte[][] colomns = result.get(id);
-
-                        byteBuffer.put(id.getBytes()); // id
-                        byteBuffer.put((byte) 9); // \t
-                        for (int j = 0; j < colomns.length - 1; j++) {
-                            byteBuffer.put(colomns[j]);
+                        if(num<10) {
+                            String logString = id + '\t';
+                            byte[][] colomns = result.get(id);
+                            byteBuffer.put(id.getBytes()); // id
                             byteBuffer.put((byte) 9); // \t
+                            for (int j = 0; j < colomns.length - 1; j++) {
+                                byteBuffer.put(colomns[j]);
+                                byteBuffer.put((byte) 9); // \t
+                                logString += new String(colomns[j]) + '\t';
+                            }
+                            byteBuffer.put(colomns[colomns.length - 1]);
+                            byteBuffer.put((byte) 10);
+                            logString += new String(colomns[colomns.length - 1]);
+                            logger.info(logString);
+                            num++;
+                        }else{
+                            byte[][] colomns = result.get(id);
+                            byteBuffer.put(id.getBytes()); // id
+                            byteBuffer.put((byte) 9); // \t
+                            for (int j = 0; j < colomns.length - 1; j++) {
+                                byteBuffer.put(colomns[j]);
+                                byteBuffer.put((byte) 9); // \t
+                            }
+                            byteBuffer.put(colomns[colomns.length - 1]);
+                            byteBuffer.put((byte) 10);
                         }
-                        byteBuffer.put(colomns[colomns.length - 1]);
-                        byteBuffer.put((byte) 10);
-
                         byteBuffer.flip();
                         while (byteBuffer.hasRemaining()) {
                             channel.write(byteBuffer);
                         }
                     }
                 }
+
 
             }
 
