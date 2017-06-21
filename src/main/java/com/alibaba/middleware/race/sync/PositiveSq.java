@@ -76,6 +76,12 @@ public class PositiveSq {
                     mappedByteBuffer.position(mappedByteBuffer.position()+13);
                     afterid = linkid(mappedByteBuffer, namelist);        //读 id
 
+                    if(!Utils.isInRange(Long.valueOf(afterid))){
+                        mappedByteBuffer.position(mappedByteBuffer.position()+99);
+                        while(mappedByteBuffer.get()!='\n');
+                        return;
+                    }
+
                     mappedByteBuffer.position(mappedByteBuffer.position()+20);
                     first = new byte[3];
                     mappedByteBuffer.get(first);      //读 姓
@@ -108,6 +114,16 @@ public class PositiveSq {
                     mappedByteBuffer.position(mappedByteBuffer.position()+8);
                     beforeid = linkid(mappedByteBuffer, namelist);
                     afterid = linkid(mappedByteBuffer, namelist);
+                    if(!Utils.isInRange(Long.valueOf(beforeid)) ){
+                        while(mappedByteBuffer.get()!='\n');
+                        return;
+                    }else if(!Utils.isInRange(Long.valueOf(afterid))){
+                        binlog.setId(beforeid);
+                        binlog.setOperation((byte)'D');
+                        Utils.binlogQueue.offer(binlog);
+                        while(mappedByteBuffer.get()!='\n');
+                        return;
+                    }
                         while (mappedByteBuffer.get() != '\n') {
                             type = typemap.get(mappedByteBuffer.get());  //读到类型
                             if (type == 0) {
@@ -153,6 +169,12 @@ public class PositiveSq {
                 case 'D':
                     mappedByteBuffer.position(mappedByteBuffer.position()+8);
                     beforeid = linkid(mappedByteBuffer, namelist);
+
+                    if(!Utils.isInRange(Long.valueOf(beforeid))){
+                        mappedByteBuffer.position(mappedByteBuffer.position()+104);
+                        while(mappedByteBuffer.get()!='\n');
+                        return;
+                    }
                     mappedByteBuffer.position(mappedByteBuffer.position()+104);
                     while (mappedByteBuffer.get() != '\n') ;
                     binlog.setId(beforeid);

@@ -84,9 +84,9 @@ public class middleResultHandler implements Runnable{
         if(binlog.getNewid()!=null){
             resultMap.remove(id);
             id = Long.valueOf(binlog.getNewid());
-            if(Utils.isInRange(id)){
+//            if(Utils.isInRange(id)){
                 resultMap.put(id,olddata);
-            }
+//            }
         }
     }
 
