@@ -18,6 +18,7 @@ public class middleResultHandler implements Runnable{
     public static boolean resultReleased = false;
     Logger logger = LoggerFactory.getLogger(middleResultHandler.class);
     Map<Character,Map<String,byte[][]>> resultMap = new HashMap<>();
+
     long t1;
 
     public middleResultHandler(){
