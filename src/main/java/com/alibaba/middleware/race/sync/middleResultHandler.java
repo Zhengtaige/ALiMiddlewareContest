@@ -31,11 +31,11 @@ public class middleResultHandler implements Runnable{
         try {
             while(true) {
                 Binlog binlog = Utils.binlogQueue.take();
-                if (binlog.getId() == null) {
+                if (binlog.getId() == -1) {
                     logger.info("{}","处理中间结果结束!");
                     logger.info("{}",System.currentTimeMillis()-t1);
                     break;
-                }else if(!Utils.isInRange(Long.valueOf(binlog.getId())) ){
+                }else if(!Utils.isInRange(binlog.getId()) ){
                     continue;
                 }
                 switch (binlog.getOperation()) {
@@ -59,17 +59,17 @@ public class middleResultHandler implements Runnable{
     }
 
     private void deleteRow(Binlog binlog){
-        String id = binlog.getId();
-        resultMap.remove(Long.valueOf(id));
+        long id = binlog.getId();
+        resultMap.remove(id);
     }
 
     private void insertRow(Binlog binlog){
-        String id = binlog.getId();
-        resultMap.put(Long.valueOf(id),binlog.getData());
+        long id = binlog.getId();
+        resultMap.put(id,binlog.getData());
     }
 
     private void updateRow(Binlog binlog){
-        long id = Long.valueOf(binlog.getId());
+        long id = binlog.getId();
         byte [][]olddata = resultMap.get(id);
         byte [][]updateData = binlog.getData();
         try {
@@ -81,9 +81,9 @@ public class middleResultHandler implements Runnable{
         }catch (Exception e){
             e.printStackTrace();
         }
-        if(binlog.getNewid()!=null){
+        if(binlog.getNewid()!=-1){
             resultMap.remove(id);
-            id = Long.valueOf(binlog.getNewid());
+            id = binlog.getNewid();
 //            if(Utils.isInRange(id)){
                 resultMap.put(id,olddata);
 //            }

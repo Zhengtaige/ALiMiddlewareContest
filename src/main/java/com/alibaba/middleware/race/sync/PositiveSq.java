@@ -19,8 +19,8 @@ public class PositiveSq {
     private static byte[][] readdata;
     private static HashMap<Byte, Byte> typemap = new HashMap<Byte, Byte>();   //记录操作类型以及第几列属性
     private static LinkedList<Byte> namelist = new LinkedList<Byte>();
-    private static String beforeid;
-    private static String afterid ;
+    private static long beforeid;
+    private static long afterid ;
     private static byte operation ;
     private static byte[] first = new byte[3];
     private static byte[] readsex = new byte[3];
@@ -97,7 +97,6 @@ public class PositiveSq {
 
                     mappedByteBuffer.position(mappedByteBuffer.position()+16);
                     readdata[3]=linkscore(mappedByteBuffer, namelist);
-    //                mappedByteBuffer.get(); //吃掉 '\n'
 
                     mappedByteBuffer.position(mappedByteBuffer.position()+16);      //ztg
                     readdata[4]=linkscore(mappedByteBuffer,namelist);
@@ -181,7 +180,7 @@ public class PositiveSq {
                     binlog.setId(beforeid);
                     binlog.setOperation(operation);
                     binlog.setData(readdata);
-                    if(!beforeid.equals(afterid)) {
+                    if(beforeid!=afterid) {
                         binlog.setNewid(afterid);
                     }
                     Utils.binlogQueue.offer(binlog);
@@ -235,7 +234,7 @@ public class PositiveSq {
         score.clear();
         return res;
     }
-    public static String linkid(MappedByteBuffer mappedByteBuffer,LinkedList<Byte> id){
+    public static long linkid(MappedByteBuffer mappedByteBuffer,LinkedList<Byte> id){
         while(true){
             byte temp = mappedByteBuffer.get();
             if(temp == '|') break;
@@ -245,7 +244,7 @@ public class PositiveSq {
         for(int i=0;i<id.size();i++)  res[i] = id.get(i);
         String stringid = new String(res);
         id.clear();
-        return stringid;
+        return Long.valueOf(stringid);
     }
 }
 
