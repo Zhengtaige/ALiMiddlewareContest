@@ -35,7 +35,7 @@ public class middleResultHandler implements Runnable{
                     logger.info("{}","处理中间结果结束!");
                     logger.info("{}",System.currentTimeMillis()-t1);
                     break;
-                }else if(!isInRange(Long.valueOf(binlog.getId()))){
+                }else if(!Utils.isInRange(Long.valueOf(binlog.getId())) ){
                     continue;
                 }
                 switch (binlog.getOperation()) {
@@ -84,7 +84,9 @@ public class middleResultHandler implements Runnable{
         if(binlog.getNewid()!=null){
             resultMap.remove(id);
             id = Long.valueOf(binlog.getNewid());
-            resultMap.put(id,olddata);
+            if(Utils.isInRange(id)){
+                resultMap.put(id,olddata);
+            }
         }
     }
 
@@ -139,11 +141,4 @@ public class middleResultHandler implements Runnable{
         resultReleased = true;
     }
 
-    private boolean isInRange(long id){
-        if(id>Server.startPkId && id<Server.endPkId){
-            return true;
-        }else{
-            return false;
-        }
-    }
 }

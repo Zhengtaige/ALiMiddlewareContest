@@ -12,4 +12,11 @@ public class Utils {
     }
     public static final int QUEUE_SIZE = 8192 * 100;
     public static BlockingQueue<Binlog> binlogQueue = new LinkedBlockingQueue<>();
+    public static boolean isInRange(long id){
+        if(id>Server.startPkId && id<Server.endPkId){
+            return true;
+        }else{
+            return false;
+        }
+    }
 }
