@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race.sync;
 
+import com.alibaba.middleware.race.sync.model.ResultMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,16 +18,13 @@ import java.util.Map;
 public class middleResultHandler implements Runnable{
     public static boolean resultReleased = false;
     Logger logger = LoggerFactory.getLogger(middleResultHandler.class);
-    Map<Character,Map<String,byte[][]>> resultMap = new HashMap<>();
+    ResultMap resultMap ;
 
     long t1;
 
     public middleResultHandler(){
         t1=System.currentTimeMillis();
-        for (int i = 0; i < 10; i++) {
-            resultMap.put((char)(i+48),new HashMap<String, byte[][]>());
-        }
-
+        resultMap = new ResultMap(Server.startPkId,Server.endPkId);
     }
     @Override
     public void run() {
@@ -37,6 +35,8 @@ public class middleResultHandler implements Runnable{
                     logger.info("{}","处理中间结果结束!");
                     logger.info("{}",System.currentTimeMillis()-t1);
                     break;
+                }else if(!isInRange(Long.valueOf(binlog.getId()))){
+                    continue;
                 }
                 switch (binlog.getOperation()) {
                     case 'I':
@@ -60,18 +60,17 @@ public class middleResultHandler implements Runnable{
 
     private void deleteRow(Binlog binlog){
         String id = binlog.getId();
-        resultMap.get(id.charAt(id.length()-1)).remove(id);
+        resultMap.remove(Long.valueOf(id));
     }
 
     private void insertRow(Binlog binlog){
         String id = binlog.getId();
-        resultMap.get(id.charAt(id.length()-1)).put(id,binlog.getData());
+        resultMap.put(Long.valueOf(id),binlog.getData());
     }
 
     private void updateRow(Binlog binlog){
-        String id = binlog.getId();
-        Map<String,byte[][]> map = resultMap.get(id.charAt(id.length()-1));
-        byte [][]olddata = map.get(id);
+        long id = Long.valueOf(binlog.getId());
+        byte [][]olddata = resultMap.get(id);
         byte [][]updateData = binlog.getData();
         try {
             for (int i = 0; i < updateData.length; i++) {
@@ -83,10 +82,9 @@ public class middleResultHandler implements Runnable{
             e.printStackTrace();
         }
         if(binlog.getNewid()!=null){
-            map.remove(binlog.getId());
-            id = binlog.getNewid();
-            map = resultMap.get(id.charAt(id.length()-1));
-            map.put(binlog.getNewid(),olddata);
+            resultMap.remove(id);
+            id = Long.valueOf(binlog.getNewid());
+            resultMap.put(id,olddata);
         }
     }
 
@@ -97,47 +95,39 @@ public class middleResultHandler implements Runnable{
             int num = 0 ;
             RandomAccessFile randomAccessFile = new RandomAccessFile(new File(Constants.MIDDLE_HOME + Constants.RESULT_FILE_NAME), "rw");
             channel = randomAccessFile.getChannel();
-            for (long i = Server.startPkId + 1; i < Server.endPkId - 1; i++) {
-                String id = String.valueOf(i);
-                char random = id.charAt(id.length() - 1);
-                if (resultMap.containsKey(random)) {
-                    Map<String, byte[][]> result = resultMap.get(random);
-                    if (result.containsKey(id)) {
-                        ByteBuffer byteBuffer = ByteBuffer.allocate(256);
-                        if(num<10) {
-                            String logString = id + '\t';
-                            byte[][] colomns = result.get(id);
-                            byteBuffer.put(id.getBytes()); // id
+            for (long i = Server.startPkId + 1; i < Server.endPkId ; i++) {
+                byte[][] colomns;
+                if ((colomns = resultMap.get(i))!=null) {
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(256);
+                    if(num<10) {
+                        String logString = String.valueOf(i) + '\t';
+                        byteBuffer.put(String.valueOf(i).getBytes()); // id
+                        byteBuffer.put((byte) 9); // \t
+                        for (int j = 0; j < colomns.length - 1; j++) {
+                            byteBuffer.put(colomns[j]);
                             byteBuffer.put((byte) 9); // \t
-                            for (int j = 0; j < colomns.length - 1; j++) {
-                                byteBuffer.put(colomns[j]);
-                                byteBuffer.put((byte) 9); // \t
-                                logString += new String(colomns[j]) + '\t';
-                            }
-                            byteBuffer.put(colomns[colomns.length - 1]);
-                            byteBuffer.put((byte) 10);
-                            logString += new String(colomns[colomns.length - 1]);
-                            logger.info(logString);
-                            num++;
-                        }else{
-                            byte[][] colomns = result.get(id);
-                            byteBuffer.put(id.getBytes()); // id
+                            logString += new String(colomns[j]) + '\t';
+                        }
+                        byteBuffer.put(colomns[colomns.length - 1]);
+                        byteBuffer.put((byte) 10);
+                        logString += new String(colomns[colomns.length - 1]);
+                        logger.info(logString);
+                        num++;
+                    }else{
+                        byteBuffer.put(String.valueOf(i).getBytes()); // id
+                        byteBuffer.put((byte) 9); // \t
+                        for (int j = 0; j < colomns.length - 1; j++) {
+                            byteBuffer.put(colomns[j]);
                             byteBuffer.put((byte) 9); // \t
-                            for (int j = 0; j < colomns.length - 1; j++) {
-                                byteBuffer.put(colomns[j]);
-                                byteBuffer.put((byte) 9); // \t
-                            }
-                            byteBuffer.put(colomns[colomns.length - 1]);
-                            byteBuffer.put((byte) 10);
                         }
-                        byteBuffer.flip();
-                        while (byteBuffer.hasRemaining()) {
-                            channel.write(byteBuffer);
-                        }
+                        byteBuffer.put(colomns[colomns.length - 1]);
+                        byteBuffer.put((byte) 10);
+                    }
+                    byteBuffer.flip();
+                    while (byteBuffer.hasRemaining()) {
+                        channel.write(byteBuffer);
                     }
                 }
-
-
             }
 
             channel.close();
@@ -147,6 +137,13 @@ public class middleResultHandler implements Runnable{
         }
         logger.info("[{}]release result done.", System.currentTimeMillis());
         resultReleased = true;
+    }
 
+    private boolean isInRange(long id){
+        if(id>Server.startPkId && id<Server.endPkId){
+            return true;
+        }else{
+            return false;
+        }
     }
 }

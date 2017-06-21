@@ -26,14 +26,14 @@ public class ResultMap {
         return mapArray[index];
     }
 
-//    public boolean isFull(long id) {
-//        int index = (int) (id - firstId);
-//        for (byte[] bytes :
-//                mapArray[index]) {
-//            if (bytes == null) return false;
-//        }
-//        return true;
-//    }
+    public boolean isFull(long id) {
+        int index = (int) (id - firstId);
+        for (byte[] bytes :
+                mapArray[index]) {
+            if (bytes == null) return false;
+        }
+        return true;
+    }
 
     public void remove(long id) {
         mapArray[(int) (id - firstId)] = null;
