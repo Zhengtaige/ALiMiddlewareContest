@@ -9,20 +9,18 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by Then on 2017/6/16.
  */
-public class middleResultHandler implements Runnable{
+public class MiddleResultHandler implements Runnable {
     public static boolean resultReleased = false;
-    Logger logger = LoggerFactory.getLogger(middleResultHandler.class);
+    Logger logger = LoggerFactory.getLogger(MiddleResultHandler.class);
     ResultMap resultMap ;
 
     long t1;
 
-    public middleResultHandler(){
+    public MiddleResultHandler() {
         t1=System.currentTimeMillis();
         resultMap = new ResultMap(Server.startPkId,Server.endPkId);
     }
@@ -56,6 +54,28 @@ public class middleResultHandler implements Runnable{
 
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void action(Binlog binlog) {
+        if (binlog.getId() == -1) {
+            logger.info("{}", "处理中间结果结束!");
+            logger.info("{}", System.currentTimeMillis() - t1);
+            releaseResult();
+        }
+//                else if(!Utils.isInRange(binlog.getId()) ){
+//                    continue;
+//                }
+        switch (binlog.getOperation()) {
+            case 'I':
+                insertRow(binlog);
+                break;
+            case 'U':
+                updateRow(binlog);
+                break;
+            case 'D':
+                deleteRow(binlog);
+                break;
         }
     }
 

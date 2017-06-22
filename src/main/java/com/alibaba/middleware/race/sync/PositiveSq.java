@@ -25,6 +25,7 @@ public class PositiveSq {
     private static byte[] first = new byte[3];
     private static byte[] readsex = new byte[3];
     private static byte type;
+    private static MiddleResultHandler middleResultHandler;
 //    public static void main(String[] args) throws IOException {
 //        long t1 = System.currentTimeMillis();
 //        initMap();
@@ -37,7 +38,8 @@ public class PositiveSq {
     public static void testTime(){
         long t1 = System.currentTimeMillis();
         initMap();
-        new Thread(new middleResultHandler()).start();
+        middleResultHandler = new MiddleResultHandler();
+//        new Thread(new middleResultHandler()).start();
         positiveread();
         logger.info("{}", System.currentTimeMillis()-t1);
     }
@@ -61,7 +63,8 @@ public class PositiveSq {
             }
         }
         Binlog binlog = new Binlog();
-        Utils.binlogQueue.offer(binlog);
+//        Utils.binlogQueue.offer(binlog);
+        middleResultHandler.action(binlog);
 
 
     }
@@ -105,7 +108,8 @@ public class PositiveSq {
                     binlog.setId(afterid);
                     binlog.setOperation(operation);
                     binlog.setData(readdata);
-                    Utils.binlogQueue.offer(binlog);
+//                    Utils.binlogQueue.offer(binlog);
+                    middleResultHandler.action(binlog);
                     return;
 
                 case 'U':
@@ -141,7 +145,8 @@ public class PositiveSq {
                         }
                         binlog.setId(beforeid);
                         binlog.setOperation((byte)'D');
-                        Utils.binlogQueue.offer(binlog);
+//                        Utils.binlogQueue.offer(binlog);
+                        middleResultHandler.action(binlog);
                         return;
                     }
                     while (mappedByteBuffer.get() != '\n') {
@@ -183,7 +188,8 @@ public class PositiveSq {
                     if(beforeid!=afterid) {
                         binlog.setNewid(afterid);
                     }
-                    Utils.binlogQueue.offer(binlog);
+//                    Utils.binlogQueue.offer(binlog);
+                    middleResultHandler.action(binlog);
                     return;
 
                 case 'D':
@@ -199,7 +205,8 @@ public class PositiveSq {
                     while (mappedByteBuffer.get() != '\n') ;
                     binlog.setId(beforeid);
                     binlog.setOperation(operation);
-                    Utils.binlogQueue.offer(binlog);
+//                    Utils.binlogQueue.offer(binlog);
+                    middleResultHandler.action(binlog);
                     return;
             }
         }
