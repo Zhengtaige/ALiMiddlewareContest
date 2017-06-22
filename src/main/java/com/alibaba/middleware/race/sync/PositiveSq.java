@@ -7,14 +7,20 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
 
 /**
  * Created by nick_zhengtaige on 2017/6/16.
  */
 public class PositiveSq {
     static Logger logger = LoggerFactory.getLogger(PositiveSq.class);
+    private static Set<String> firstNameSet = new HashSet<>();
+    private static Set<String> lastNameSet = new HashSet<>();
+    private static List<String> updateIdTop50 = new LinkedList<>();
+    private static int idUpdated = 0;
+    private static int maxScore = 0;
+    private static int i = 1;
+    private static boolean idChanged = false;
     private static int Length = 55;
     private static byte[][] readdata;
     private static HashMap<Byte, Byte> typemap = new HashMap<Byte, Byte>();   //记录操作类型以及第几列属性
@@ -44,6 +50,10 @@ public class PositiveSq {
 //        new Thread(new middleResultHandler()).start();
         positiveread();
         logger.info("{}", System.currentTimeMillis()-t1);
+
+        logger.info("firstNameSet: {}", firstNameSet.toString());
+        logger.info("lastNameSet: {}", lastNameSet.toString());
+        logger.info("id update top 50: ", updateIdTop50.toString());
     }
 
     public static void positiveread() {
@@ -91,9 +101,17 @@ public class PositiveSq {
                     first = new byte[3];
                     mappedByteBuffer.get(first);      //读 姓
 
+                    firstNameSet.add(new String(first));
+
                     readdata[0]=first;
                     mappedByteBuffer.position(mappedByteBuffer.position()+20);
                     readdata[1]=linkname(mappedByteBuffer, namelist);
+
+                    lastNameSet.add(new String(new byte[]{readdata[1][0], readdata[1][1], readdata[1][2]}));
+                    if (readdata[1].length > 3) {
+                        lastNameSet.add(new String(new byte[]{readdata[1][3], readdata[1][4], readdata[1][5]}));
+                    }
+
 
                     mappedByteBuffer.position(mappedByteBuffer.position()+13);
                     byte sex = mappedByteBuffer.get();
@@ -113,6 +131,18 @@ public class PositiveSq {
                     readdata[4]=linkscore(mappedByteBuffer,namelist);
                     mappedByteBuffer.get();
 
+                    int score1 = Integer.valueOf(new String(readdata[3]));
+                    int score2 = Integer.valueOf(new String(readdata[4]));
+                    if (score1 > maxScore) maxScore = score1;
+                    if (score2 > maxScore) maxScore = score2;
+                    if (!idChanged) {
+                        if (afterid != i++) {
+                            logger.info("here id changed:{}", i--);
+                            idChanged = true;
+                        }
+                    }
+
+
                     binlog.setId(afterid);
                     binlog.setOperation(operation);
                     binlog.setData(readdata);
@@ -125,6 +155,10 @@ public class PositiveSq {
                     mappedByteBuffer.position(mappedByteBuffer.position()+8);
                     beforeid = linkid(mappedByteBuffer, namelist);
                     afterid = linkid(mappedByteBuffer, namelist);
+                    if (idUpdated++ < 50) {
+                        updateIdTop50.add(beforeid + ">" + afterid);
+                    }
+
                     if(!Utils.isInRange(beforeid) ){
                         while(mappedByteBuffer.get()!='\n');
                         return;

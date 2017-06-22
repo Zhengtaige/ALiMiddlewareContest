@@ -4,7 +4,8 @@ package com.alibaba.middleware.race.sync;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -18,11 +19,12 @@ public class Test {
 //        System.out.println(randomAccessFile.read());
 //        System.out.println(randomAccessFile.read());
 //        System.out.println(randomAccessFile.read());
-        HashSet<String> test = new HashSet<>();
+        List<String> test = new LinkedList<>();
         test.add("1");
         test.add("2");
         test.add("3");
-        System.out.println(test);
+        test.add("1");
+        System.out.println(test.toString());
     }
 
     public static void main11(String[] args) throws IOException {
