@@ -24,6 +24,8 @@ public class PositiveSq {
     private static byte operation ;
     private static byte[] first = new byte[3];
     private static byte[] readsex = new byte[3];
+    private static byte[] male = {-25, -108, -73};
+    private static byte[] female = {-27, -91, -77};
     private static byte type;
     private static MiddleResultHandler middleResultHandler;
 //    public static void main(String[] args) throws IOException {
@@ -94,9 +96,15 @@ public class PositiveSq {
                     readdata[1]=linkname(mappedByteBuffer, namelist);
 
                     mappedByteBuffer.position(mappedByteBuffer.position()+13);
-                    readsex = new byte[3];
-                    mappedByteBuffer.get(readsex);
-                    readdata[2]=readsex;
+                    byte sex = mappedByteBuffer.get();
+                    if (sex == -25) {
+                        readdata[2] = male;
+                    } else {
+                        readdata[2] = female;
+                    }
+
+                    mappedByteBuffer.position(mappedByteBuffer.position() + 2);
+
 
                     mappedByteBuffer.position(mappedByteBuffer.position()+16);
                     readdata[3]=linkscore(mappedByteBuffer, namelist);
@@ -163,10 +171,13 @@ public class PositiveSq {
                             readdata[type]=linkname(mappedByteBuffer, namelist);
                         } else if (type == 2) {
                             mappedByteBuffer.position(mappedByteBuffer.position()+10);
-                            readsex = new byte[3];
-                            mappedByteBuffer.get(readsex);
-                            readdata[type]=readsex;
-                            mappedByteBuffer.position(mappedByteBuffer.position()+1);
+                            sex = mappedByteBuffer.get();
+                            if (sex == -25) {
+                                readdata[type] = male;
+                            } else {
+                                readdata[type] = female;
+                            }
+                            mappedByteBuffer.position(mappedByteBuffer.position() + 3);
                         } else {
                 //            mappedByteBuffer.position(mappedByteBuffer.position()+10);         //ztg
                             mappedByteBuffer.position(mappedByteBuffer.position()+3);
