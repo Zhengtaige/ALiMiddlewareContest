@@ -230,27 +230,54 @@ public class PositiveSq {
 
     }
 
-    public static byte[] linkname(MappedByteBuffer mappedByteBuffer,LinkedList<Byte> name){
-        while(true){
-            byte temp = mappedByteBuffer.get();
-            if(temp == '|') break;
-            else name.add(temp);
+    public static byte[] linkname(MappedByteBuffer mappedByteBuffer, LinkedList<Byte> Kname) {
+        byte[] name = new byte[6];
+        mappedByteBuffer.get(name, 0, 3);
+        byte temp = mappedByteBuffer.get();
+        if (temp == '|') {
+            byte[] newname = new byte[3];
+            System.arraycopy(name, 0, newname, 0, 3);
+            return newname;
+        } else {
+            name[3] = temp;
+            mappedByteBuffer.get(name, 4, 2);
+//            System.out.println(mappedByteBuffer.get());;
+            return name;
         }
-        byte[] res = new byte[name.size()];
-        for(int i=0;i<name.size();i++)  res[i] = name.get(i);
-        name.clear();
-        return res;
+//        while(true){
+//            byte temp = mappedByteBuffer.get();
+//            if(temp == '|') break;
+//            else name.add(temp);
+//        }
+//        byte[] res = new byte[name.size()];
+//        for(int i=0;i<name.size();i++)  res[i] = name.get(i);
+//        name.clear();
+//        return res;
     }
-    public static byte[] linkscore(MappedByteBuffer mappedByteBuffer,LinkedList<Byte> score){
+
+    public static byte[] linkscore(MappedByteBuffer mappedByteBuffer, LinkedList<Byte> Kscore) {
+        byte[] score = new byte[6];
+        int tol = 0;
         while(true){
             byte temp = mappedByteBuffer.get();
             if(temp == '|') break;
-            else score.add(temp);
+            else {
+                score[tol] = temp;
+                tol++;
+            }
         }
-        byte[] res = new byte[score.size()];
-        for(int i=0;i<score.size();i++)  res[i] = score.get(i);
-        score.clear();
-        return res;
+        byte[] newscore = new byte[tol];
+        System.arraycopy(score, 0, newscore, 0, tol);
+        return newscore;
+//        while(true){
+//            byte temp = mappedByteBuffer.get();
+//            if(temp == '|') break;
+//            else score.add(temp);
+//        }
+//        byte[] res = new byte[score.size()];
+//        for(int i=0;i<score.size();i++)  res[i] = score.get(i);
+//        score.clear();
+//        return res;
     }
 
     //    public static long linkid(MappedByteBuffer mappedByteBuffer,LinkedList<Byte> id){
