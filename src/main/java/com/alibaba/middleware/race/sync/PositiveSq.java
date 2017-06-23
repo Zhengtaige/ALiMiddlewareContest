@@ -252,17 +252,40 @@ public class PositiveSq {
         score.clear();
         return res;
     }
-    public static long linkid(MappedByteBuffer mappedByteBuffer,LinkedList<Byte> id){
-        while(true){
-            byte temp = mappedByteBuffer.get();
-            if(temp == '|') break;
-            else id.add(temp);
+
+    //    public static long linkid(MappedByteBuffer mappedByteBuffer,LinkedList<Byte> id){
+//        while(true){
+//            byte temp = mappedByteBuffer.get();
+//            if(temp == '|') break;
+//            else id.add(temp);
+//        }
+//        byte[] res = new byte[id.size()];
+//        for(int i=0;i<id.size();i++)  res[i] = id.get(i);
+//        String stringid = new String(res);
+//        id.clear();
+//        return Long.valueOf(stringid);
+//    }
+    public static long linkid(MappedByteBuffer mappedByteBuffer, LinkedList<Byte> id) {
+        long bitch = 0;
+        byte temp = mappedByteBuffer.get();
+        if (temp == '8' || temp == '9') return bitch;
+        else bitch = bitch + temp * 10;
+        while (true) {
+            temp = mappedByteBuffer.get();
+            if (temp == '|') break;
+            else bitch = bitch + temp * 10;
         }
-        byte[] res = new byte[id.size()];
-        for(int i=0;i<id.size();i++)  res[i] = id.get(i);
-        String stringid = new String(res);
-        id.clear();
-        return Long.valueOf(stringid);
+        return bitch;
+//        while(true){
+//            byte temp = mappedByteBuffer.get();
+//            if(temp == '|') break;
+//            else id.add(temp);
+//        }
+//        byte[] res = new byte[id.size()];
+//        for(int i=0;i<id.size();i++)  res[i] = id.get(i);
+//        String stringid = new String(res);
+//        id.clear();
+//        return Long.valueOf(stringid);
     }
 }
 
