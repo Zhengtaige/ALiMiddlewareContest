@@ -268,13 +268,17 @@ public class PositiveSq {
     public static long linkid(MappedByteBuffer mappedByteBuffer, LinkedList<Byte> id) {
         long bitch = 0;
         byte temp = mappedByteBuffer.get();
-        if (temp == '8' || temp == '9') return bitch;
-        else bitch = bitch + (temp - 48) * 10;
+        if (temp == '8' || temp == '9') {
+            while (mappedByteBuffer.get() != '|') ;
+            return bitch;
+        } else bitch = bitch * 10 + (temp - 48);
         while (true) {
             temp = mappedByteBuffer.get();
             if (temp == '|') break;
-            else bitch = bitch + (temp - 48) * 10;
+            else bitch = bitch * 10 + (temp - 48);
         }
+//        if (bitch > 1000000)
+//            System.out.println(bitch);
         return bitch;
 //        while(true){
 //            byte temp = mappedByteBuffer.get();
