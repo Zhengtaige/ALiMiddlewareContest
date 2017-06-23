@@ -269,11 +269,11 @@ public class PositiveSq {
         long bitch = 0;
         byte temp = mappedByteBuffer.get();
         if (temp == '8' || temp == '9') return bitch;
-        else bitch = bitch + temp * 10;
+        else bitch = bitch + (temp - 48) * 10;
         while (true) {
             temp = mappedByteBuffer.get();
             if (temp == '|') break;
-            else bitch = bitch + temp * 10;
+            else bitch = bitch + (temp - 48) * 10;
         }
         return bitch;
 //        while(true){
