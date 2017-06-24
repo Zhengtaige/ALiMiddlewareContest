@@ -17,6 +17,7 @@ public class PositiveSq {
     private static Set<String> firstNameSet = new HashSet<>();
     private static Set<String> lastNameSet = new HashSet<>();
     private static Set<String> nameTotal = new HashSet<>();
+    private static int max = 0;
 
     private static List<String> updateIdTop50 = new LinkedList<>();
     private static int idUpdated = 0;
@@ -53,6 +54,7 @@ public class PositiveSq {
         positiveread();
         logger.info("{}", System.currentTimeMillis()-t1);
 
+        logger.info("max skip size: {}", max);
         logger.info("firstNameSet: {}", firstNameSet.toString());
         logger.info("lastNameSet: {}", lastNameSet.toString());
         logger.info("id update top 50: {}", updateIdTop50.toString());
@@ -85,11 +87,16 @@ public class PositiveSq {
     }
     private static void handleIUD(MappedByteBuffer mappedByteBuffer) throws IOException {
         Binlog binlog = new Binlog();
+        int readd = 0;
         while (true) {
             operation=mappedByteBuffer.get();
+            readd++;
             //Step2: 读取操作符
             switch (operation) {
                 case 'I':
+                    if (readd > max) max = readd;
+                    readd = 0;
+
                     readdata = new byte[5][];
                     mappedByteBuffer.position(mappedByteBuffer.position()+13);
                     afterid = linkid(mappedByteBuffer, namelist);        //读 id
@@ -159,6 +166,9 @@ public class PositiveSq {
                     return;
 
                 case 'U':
+                    if (readd > max) max = readd;
+                    readd = 0;
+
                     readdata = new byte[5][];
                     mappedByteBuffer.position(mappedByteBuffer.position()+8);
                     beforeid = linkid(mappedByteBuffer, namelist);
@@ -246,6 +256,9 @@ public class PositiveSq {
                     return;
 
                 case 'D':
+                    if (readd > max) max = readd;
+                    readd = 0;
+
                     mappedByteBuffer.position(mappedByteBuffer.position()+8);
                     beforeid = linkid(mappedByteBuffer, namelist);
 
