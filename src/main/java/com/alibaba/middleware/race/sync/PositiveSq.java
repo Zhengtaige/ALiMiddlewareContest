@@ -16,6 +16,8 @@ public class PositiveSq {
     static Logger logger = LoggerFactory.getLogger(PositiveSq.class);
     private static Set<String> firstNameSet = new HashSet<>();
     private static Set<String> lastNameSet = new HashSet<>();
+    private static Set<String> nameTotal = new HashSet<>();
+
     private static List<String> updateIdTop50 = new LinkedList<>();
     private static int idUpdated = 0;
     private static int maxScore = 0;
@@ -53,7 +55,8 @@ public class PositiveSq {
 
         logger.info("firstNameSet: {}", firstNameSet.toString());
         logger.info("lastNameSet: {}", lastNameSet.toString());
-        logger.info("id update top 50: ", updateIdTop50.toString());
+        logger.info("id update top 50: {}", updateIdTop50.toString());
+        logger.info("totalNameSet: {}", nameTotal.toString());
     }
 
     public static void positiveread() {
@@ -107,10 +110,15 @@ public class PositiveSq {
                     mappedByteBuffer.position(mappedByteBuffer.position()+20);
                     readdata[1]=linkname(mappedByteBuffer, namelist);
 
-                    lastNameSet.add(new String(new byte[]{readdata[1][0], readdata[1][1], readdata[1][2]}));
-                    if (readdata[1].length > 3) {
-                        lastNameSet.add(new String(new byte[]{readdata[1][3], readdata[1][4], readdata[1][5]}));
-                    }
+                    lastNameSet.add(new String(readdata[1]));
+//                    lastNameSet.add(new String(new byte[]{readdata[1][0], readdata[1][1], readdata[1][2]}));
+//                    if (readdata[1].length > 3) {
+//                        lastNameSet.add(new String(new byte[]{readdata[1][3], readdata[1][4], readdata[1][5]}));
+//                    }
+                    byte[] name = new byte[first.length + readdata[1].length];
+                    System.arraycopy(first, 0, name, 0, first.length);
+                    System.arraycopy(readdata[1], 0, name, first.length, readdata[1].length);
+                    nameTotal.add(new String(name));
 
 
                     mappedByteBuffer.position(mappedByteBuffer.position()+13);

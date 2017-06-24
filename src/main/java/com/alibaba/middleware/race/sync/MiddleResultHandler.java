@@ -30,8 +30,8 @@ public class MiddleResultHandler implements Runnable {
             while(true) {
                 Binlog binlog = Utils.binlogQueue.take();
                 if (binlog.getId() == -1) {
-                    logger.info("{}","处理中间结果结束!");
-                    logger.info("{}",System.currentTimeMillis()-t1);
+//                    logger.info("{}","处理中间结果结束!");
+//                    logger.info("{}",System.currentTimeMillis()-t1);
                     break;
                 }
 //                else if(!Utils.isInRange(binlog.getId()) ){
@@ -59,8 +59,8 @@ public class MiddleResultHandler implements Runnable {
 
     public void action(Binlog binlog) {
         if (binlog.getId() == -1) {
-            logger.info("{}", "处理中间结果结束!");
-            logger.info("{}", System.currentTimeMillis() - t1);
+//            logger.info("{}", "处理中间结果结束!");
+//            logger.info("{}", System.currentTimeMillis() - t1);
             releaseResult();
         }
 //                else if(!Utils.isInRange(binlog.getId()) ){
@@ -132,7 +132,7 @@ public class MiddleResultHandler implements Runnable {
                         byteBuffer.put(colomns[colomns.length - 1]);
                         byteBuffer.put((byte) 10);
                         logString += new String(colomns[colomns.length - 1]);
-                        logger.info(logString);
+//                        logger.info(logString);
                         num++;
                     }else{
                         byteBuffer.put(String.valueOf(i).getBytes()); // id
