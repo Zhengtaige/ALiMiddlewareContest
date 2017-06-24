@@ -241,7 +241,7 @@ public class PositiveSq {
         } else {
             name[3] = temp;
             mappedByteBuffer.get(name, 4, 2);
-//            System.out.println(mappedByteBuffer.get());;
+            mappedByteBuffer.get();
             return name;
         }
 //        while(true){
@@ -265,6 +265,9 @@ public class PositiveSq {
                 score[tol] = temp;
                 tol++;
             }
+        }
+        if(tol==6){
+            return score;
         }
         byte[] newscore = new byte[tol];
         System.arraycopy(score, 0, newscore, 0, tol);
