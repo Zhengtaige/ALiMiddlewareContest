@@ -58,11 +58,11 @@ public class MiddleResultHandler implements Runnable {
     }
 
     public void action(Binlog binlog) {
-        if (binlog.getId() == -1) {
-            logger.info("{}", "处理中间结果结束!");
-            logger.info("{}", System.currentTimeMillis() - t1);
-            releaseResult();
-        }
+//        if (binlog.getId() == -1) {
+//            logger.info("{}", "处理中间结果结束!");
+//            logger.info("{}", System.currentTimeMillis() - t1);
+//            releaseResult();
+//        }
 //                else if(!Utils.isInRange(binlog.getId()) ){
 //                    continue;
 //                }

@@ -64,9 +64,9 @@ public class PositiveSq {
 //                logger.info(e.getMessage());
             }
         }
-        Binlog binlog = new Binlog();
+//        Binlog binlog = new Binlog();
 //        Utils.binlogQueue.offer(binlog);
-        middleResultHandler.action(binlog);
+        middleResultHandler.releaseResult();
 
 
     }

@@ -4,7 +4,6 @@ package com.alibaba.middleware.race.sync;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Random;
 
 /**
@@ -18,11 +17,32 @@ public class Test {
 //        System.out.println(randomAccessFile.read());
 //        System.out.println(randomAccessFile.read());
 //        System.out.println(randomAccessFile.read());
-        HashSet<String> test = new HashSet<>();
-        test.add("1");
-        test.add("2");
-        test.add("3");
-        System.out.println(test);
+        String name = "彭, 周, 江, 柳, 林, 陈, 高, 阮, 侯, 赵, 李, 王, 徐, 郑, 杨, 刘, 邹, 吴, 钱, 孙";
+        String lastname = "铭, 闵, 静, 天, 甲, 民, 田, 力, 立, 黎, 城, 刚, 骏, 四, 九, 甜, 雨, 他, 明, 乙, 军, 恬, 俊, 乐, 娥, 励, 莉, 兲, 景, 人, 益, 发, 十, 敏, 八, 晶, 六, 京, 名, 丙, 五, 三, 上, 我, 成, 君, 诚, 一, 丁, 七, 二, 依";
+
+
+        for (String s :
+                name.split(", ")) {
+            System.out.print(s + ":");
+            for (byte b :
+                    s.getBytes()) {
+                System.out.print(b);
+                System.out.print(",");
+            }
+            System.out.println();
+        }
+        System.out.println("-------------------");
+        for (String s :
+                lastname.split(", ")) {
+            System.out.print(s + ":");
+            for (byte b :
+                    s.getBytes()) {
+                System.out.print(b);
+                System.out.print(",");
+            }
+            System.out.println();
+        }
+//        System.out.println(name.split(", ")[0].getBytes());
     }
 
     public static void main11(String[] args) throws IOException {
