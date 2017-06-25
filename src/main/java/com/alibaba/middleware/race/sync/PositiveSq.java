@@ -61,12 +61,12 @@ public class PositiveSq {
         logger.info("{}", System.currentTimeMillis()-t1);
 
 
-        logger.info("firstNameSet size: {}", firstNameSet.toString());
-        logger.info("lastNameSet: {}, size: {}", lastNameSet.toString(), lastNameSet.size());
+        //logger.info("firstNameSet size: {}", firstNameSet.toString());
+        //logger.info("lastNameSet: {}, size: {}", lastNameSet.toString(), lastNameSet.size());
 //        logger.info("id update top 50: {}", updateIdTop50.toString());
-        logger.info("totalNameSet num: {}", nameTotal.size());
-        logger.info("max skip size: {}, min skip size: {}", 55 + max, 55 + min);
-        logger.info("update is increase: {}", isIncrease);
+        //logger.info("totalNameSet num: {}", nameTotal.size());
+        //logger.info("max skip size: {}, min skip size: {}", 55 + max, 55 + min);
+        //logger.info("update is increase: {}", isIncrease);
 
     }
 
