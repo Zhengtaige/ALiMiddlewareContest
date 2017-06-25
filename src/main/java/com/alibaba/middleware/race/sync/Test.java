@@ -4,9 +4,9 @@ package com.alibaba.middleware.race.sync;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by autulin on 6/17/17.
@@ -19,12 +19,35 @@ public class Test {
 //        System.out.println(randomAccessFile.read());
 //        System.out.println(randomAccessFile.read());
 //        System.out.println(randomAccessFile.read());
-        List<String> test = new LinkedList<>();
-        test.add("1");
-        test.add("2");
-        test.add("3");
-        test.add("1");
-        System.out.println(test.toString());
+//        List<String> test = new LinkedList<>();
+//        test.add("1");
+//        test.add("2");
+//        test.add("3");
+//        test.add("1");
+//        System.out.println(test.toString());
+        int i = 0;
+        int[] nums = new int[1000];
+        int[] test = new int[1000];
+        for (int j = 0; j < test.length; j++) {
+            test[j] = new Random().nextInt();
+        }
+
+        ExecutorService service = Executors.newSingleThreadExecutor();
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        });
+//        CompletionService cs = new ExecutorCompletionService(service);
+//        cs.submit(new Callable() {
+//            @Override
+//            public Object call() throws Exception {
+//                i++;
+//                return null;
+//            }
+//        })
+
     }
 
     public static void main11(String[] args) throws IOException {

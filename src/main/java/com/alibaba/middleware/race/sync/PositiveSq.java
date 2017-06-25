@@ -18,6 +18,9 @@ public class PositiveSq {
     private static Set<String> lastNameSet = new HashSet<>();
     private static Set<String> nameTotal = new HashSet<>();
     private static int max = 0;
+    private static int min = 1000;
+    private static boolean isIncrease = true;
+    private static long lastUpadteAfterID = 0;
 
     private static List<String> updateIdTop50 = new LinkedList<>();
     private static int idUpdated = 0;
@@ -54,11 +57,14 @@ public class PositiveSq {
         positiveread();
         logger.info("{}", System.currentTimeMillis()-t1);
 
-        logger.info("max skip size: {}", max);
-        logger.info("firstNameSet: {}", firstNameSet.toString());
-        logger.info("lastNameSet: {}", lastNameSet.toString());
-        logger.info("id update top 50: {}", updateIdTop50.toString());
-        logger.info("totalNameSet: {}", nameTotal.toString());
+
+        logger.info("firstNameSet size: {}", firstNameSet.toString());
+        logger.info("lastNameSet: {}, size: {}", lastNameSet.toString(), lastNameSet.size());
+//        logger.info("id update top 50: {}", updateIdTop50.toString());
+        logger.info("totalNameSet num: {}", nameTotal.size());
+        logger.info("max skip size: {}, min skip size: {}", 55 + max, 55 + min);
+        logger.info("update is increase: {}", isIncrease);
+
     }
 
     public static void positiveread() {
@@ -95,6 +101,7 @@ public class PositiveSq {
             switch (operation) {
                 case 'I':
                     if (readd > max) max = readd;
+                    if (readd < min) min = readd;
                     readd = 0;
 
                     readdata = new byte[5][];
@@ -167,6 +174,7 @@ public class PositiveSq {
 
                 case 'U':
                     if (readd > max) max = readd;
+                    if (readd < min) min = readd;
                     readd = 0;
 
                     readdata = new byte[5][];
@@ -175,6 +183,13 @@ public class PositiveSq {
                     afterid = linkid(mappedByteBuffer, namelist);
                     if (idUpdated++ < 50) {
                         updateIdTop50.add(beforeid + ">" + afterid);
+                    }
+                    if (isIncrease) {
+                        if (afterid >= lastUpadteAfterID) {
+                            lastUpadteAfterID = afterid;
+                        } else {
+                            isIncrease = false;
+                        }
                     }
 
                     if(!Utils.isInRange(beforeid) ){
@@ -257,6 +272,7 @@ public class PositiveSq {
 
                 case 'D':
                     if (readd > max) max = readd;
+                    if (readd < min) min = readd;
                     readd = 0;
 
                     mappedByteBuffer.position(mappedByteBuffer.position()+8);
