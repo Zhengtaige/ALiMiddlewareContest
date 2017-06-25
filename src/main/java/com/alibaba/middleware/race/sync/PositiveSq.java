@@ -110,7 +110,6 @@ public class PositiveSq {
                 case 'I':
                     if (readd > max) max = readd;
                     if (readd < min) min = readd;
-                    readd = 0;
                     if(readd + Length != skipLen){
                         long []tmp = new long[2];
                         tmp[0] = rowNum;
@@ -190,7 +189,6 @@ public class PositiveSq {
                 case 'U':
                     if (readd > max) max = readd;
                     if (readd < min) min = readd;
-                    readd = 0;
                     if(readd + Length != skipLen){
                         long []tmp = new long[2];
                         tmp[0] = rowNum;
@@ -295,7 +293,6 @@ public class PositiveSq {
                 case 'D':
                     if (readd > max) max = readd;
                     if (readd < min) min = readd;
-                    readd = 0;
                     if(readd + Length != skipLen){
                         long []tmp = new long[2];
                         tmp[0] = rowNum;
