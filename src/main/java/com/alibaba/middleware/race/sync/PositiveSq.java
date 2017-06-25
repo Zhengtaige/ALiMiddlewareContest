@@ -295,7 +295,22 @@ public class PositiveSq {
 //        id.clear();
 //        return Long.valueOf(stringid);
 //    }
-    public static long linkid(MappedByteBuffer mappedByteBuffer, LinkedList<Byte> id) {
+//    public static long linkid(MappedByteBuffer mappedByteBuffer, LinkedList<Byte> id) {
+//        long bitch = 0;
+//        byte temp = mappedByteBuffer.get();
+//        if (temp == '8' || temp == '9') {
+//            while (mappedByteBuffer.get() != '|') ;
+//            return bitch;
+//        } else bitch = bitch * 10 + (temp - 48);
+//        while (true) {
+//            temp = mappedByteBuffer.get();
+//            if (temp == '|') break;
+//            else bitch = bitch * 10 + (temp - 48);
+//        }
+//        return bitch;
+//    }
+
+    public static long linkid(MappedByteBuffer mappedByteBuffer, LinkedList<Byte> id) {    //ztg尝试修改
         long bitch = 0;
         byte temp = mappedByteBuffer.get();
         if (temp == '8' || temp == '9') {
@@ -305,11 +320,15 @@ public class PositiveSq {
         while (true) {
             temp = mappedByteBuffer.get();
             if (temp == '|') break;
-            else bitch = bitch * 10 + (temp - 48);
+            else {
+                bitch = bitch * 10 + (temp - 48);
+                if(bitch>=8000000) return 0;
+            }
         }
+        return bitch;
+    }
 //        if (bitch > 1000000)
 //            System.out.println(bitch);
-        return bitch;
 //        while(true){
 //            byte temp = mappedByteBuffer.get();
 //            if(temp == '|') break;
@@ -320,6 +339,5 @@ public class PositiveSq {
 //        String stringid = new String(res);
 //        id.clear();
 //        return Long.valueOf(stringid);
-    }
 }
 
