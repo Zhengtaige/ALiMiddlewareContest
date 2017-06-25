@@ -15,7 +15,7 @@ import java.util.LinkedList;
  */
 public class PositiveSq {
     static Logger logger = LoggerFactory.getLogger(PositiveSq.class);
-    private static int Length = 55;
+    private static int Length = 61;
     private static byte[][] readdata;
     private static HashMap<Byte, Byte> typemap = new HashMap<Byte, Byte>();   //记录操作类型以及第几列属性
     private static LinkedList<Byte> namelist = new LinkedList<Byte>();
