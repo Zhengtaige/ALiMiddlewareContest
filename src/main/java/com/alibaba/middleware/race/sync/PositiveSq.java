@@ -21,6 +21,9 @@ public class PositiveSq {
     private static int min = 1000;
     private static boolean isIncrease = true;
     private static long lastUpadteAfterID = 0;
+    private static long rowNum=0;
+    private static long skipLen = -1;
+    private static List<long[]> skipLenList = new LinkedList<>();
 
     private static List<String> updateIdTop50 = new LinkedList<>();
     private static int idUpdated = 0;
@@ -85,15 +88,20 @@ public class PositiveSq {
 //                logger.info(e.getMessage());
             }
         }
+        logger.info("共有"+skipLenList.size()+"次前缀长度变化!");
+        for (long[] tmp:
+             skipLenList) {
+            logger.info(tmp[0]+":"+tmp[1]);
+        }
         Binlog binlog = new Binlog();
 //        Utils.binlogQueue.offer(binlog);
         middleResultHandler.action(binlog);
-
-
     }
+
     private static void handleIUD(MappedByteBuffer mappedByteBuffer) throws IOException {
+        rowNum++;
         Binlog binlog = new Binlog();
-        int readd = 0;
+        int readd = -1;
         while (true) {
             operation=mappedByteBuffer.get();
             readd++;
@@ -103,6 +111,13 @@ public class PositiveSq {
                     if (readd > max) max = readd;
                     if (readd < min) min = readd;
                     readd = 0;
+                    if(readd + Length != skipLen){
+                        long []tmp = new long[2];
+                        tmp[0] = rowNum;
+                        tmp[1] = readd + Length;
+                        skipLen = tmp[1];
+                        skipLenList.add(tmp);
+                    }
 
                     readdata = new byte[5][];
                     mappedByteBuffer.position(mappedByteBuffer.position()+13);
@@ -176,6 +191,13 @@ public class PositiveSq {
                     if (readd > max) max = readd;
                     if (readd < min) min = readd;
                     readd = 0;
+                    if(readd + Length != skipLen){
+                        long []tmp = new long[2];
+                        tmp[0] = rowNum;
+                        tmp[1] = readd + Length;
+                        skipLen = tmp[1];
+                        skipLenList.add(tmp);
+                    }
 
                     readdata = new byte[5][];
                     mappedByteBuffer.position(mappedByteBuffer.position()+8);
@@ -274,6 +296,13 @@ public class PositiveSq {
                     if (readd > max) max = readd;
                     if (readd < min) min = readd;
                     readd = 0;
+                    if(readd + Length != skipLen){
+                        long []tmp = new long[2];
+                        tmp[0] = rowNum;
+                        tmp[1] = readd + Length;
+                        skipLen = tmp[1];
+                        skipLenList.add(tmp);
+                    }
 
                     mappedByteBuffer.position(mappedByteBuffer.position()+8);
                     beforeid = linkid(mappedByteBuffer, namelist);
