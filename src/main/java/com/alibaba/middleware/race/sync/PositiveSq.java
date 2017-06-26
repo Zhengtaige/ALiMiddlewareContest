@@ -15,7 +15,7 @@ import java.util.LinkedList;
  */
 public class PositiveSq {
     static Logger logger = LoggerFactory.getLogger(PositiveSq.class);
-    private static int Length = 55;
+    private static int Length = 61;
     private static byte[][] readdata;
     private static HashMap<Byte, Byte> typemap = new HashMap<Byte, Byte>();   //记录操作类型以及第几列属性
     private static LinkedList<Byte> namelist = new LinkedList<Byte>();
@@ -27,6 +27,48 @@ public class PositiveSq {
     private static byte[] male = {-25, -108, -73};
     private static byte[] female = {-27, -91, -77};
     private static byte type;
+    private static int rowNum = 0;
+    private static int skipArrayRownum = 0;
+    private static int [][]skipArray = {
+            {5992840,62},
+            {7401907,55},
+            {7402214,56},
+            {7402525,57},
+            {7405930,58},
+            {7439618,59},
+            {7710947,60},
+            {9406242,61},
+            {26796796,62},
+            {28437242,55},
+            {28437397,56},
+            {28437551,57},
+            {28439937,58},
+            {28474496,59},
+            {28682751,60},
+            {30406135,61},
+            {48373350,62},
+            {49815688,55},
+            {49815851,56},
+            {49816014,57},
+            {49817797,58},
+            {49835727,59},
+            {50008023,60},
+            {51736755,61},
+            {69480155,62},
+            {70943858,55},
+            {70944021,56},
+            {70944184,57},
+            {70945977,58},
+            {70971548,59},
+            {71150443,60},
+            {72886772,61},
+            {90317715,62},
+            {93642976,55},
+            {93643139,56},
+            {93643302,57},
+            {93645074,58},
+            {93677012,59},
+            {94020564,60}};
     private static MiddleResultHandler middleResultHandler;
 //    public static void main(String[] args) throws IOException {
 //        long t1 = System.currentTimeMillis();
@@ -53,6 +95,12 @@ public class PositiveSq {
                 MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
                 while (true) {
                     //Step1: 读取废字段
+
+                    rowNum++;
+                    if((skipArrayRownum<39)&&(rowNum == skipArray[skipArrayRownum][0])){
+                        Length = skipArray[skipArrayRownum][1];
+                        skipArrayRownum++;
+                    }
                     mappedByteBuffer.position(mappedByteBuffer.position() + Length);
                     handleIUD(mappedByteBuffer);
                 }
@@ -72,7 +120,7 @@ public class PositiveSq {
     }
     private static void handleIUD(MappedByteBuffer mappedByteBuffer) throws IOException {
         Binlog binlog = new Binlog();
-        while (true) {
+//        while (true) {
             operation=mappedByteBuffer.get();
             //Step2: 读取操作符
             switch (operation) {
@@ -220,7 +268,7 @@ public class PositiveSq {
                     middleResultHandler.action(binlog);
                     return;
             }
-        }
+//        }
     }
     public static void initMap() {
         typemap.put((byte)'i', (byte)0);
@@ -295,7 +343,22 @@ public class PositiveSq {
 //        id.clear();
 //        return Long.valueOf(stringid);
 //    }
-    public static long linkid(MappedByteBuffer mappedByteBuffer, LinkedList<Byte> id) {
+//    public static long linkid(MappedByteBuffer mappedByteBuffer, LinkedList<Byte> id) {
+//        long bitch = 0;
+//        byte temp = mappedByteBuffer.get();
+//        if (temp == '8' || temp == '9') {
+//            while (mappedByteBuffer.get() != '|') ;
+//            return bitch;
+//        } else bitch = bitch * 10 + (temp - 48);
+//        while (true) {
+//            temp = mappedByteBuffer.get();
+//            if (temp == '|') break;
+//            else bitch = bitch * 10 + (temp - 48);
+//        }
+//        return bitch;
+//    }
+
+    public static long linkid(MappedByteBuffer mappedByteBuffer, LinkedList<Byte> id) {    //ztg尝试修改
         long bitch = 0;
         byte temp = mappedByteBuffer.get();
         if (temp == '8' || temp == '9') {
@@ -308,11 +371,15 @@ public class PositiveSq {
         while (true) {
             temp = mappedByteBuffer.get();
             if (temp == '|') break;
-            else bitch = bitch * 10 + (temp - 48);
+            else {
+                bitch = bitch * 10 + (temp - 48);
+                if(bitch>=8000000) return 0;
+            }
         }
+        return bitch;
+    }
 //        if (bitch > 1000000)
 //            System.out.println(bitch);
-        return bitch;
 //        while(true){
 //            byte temp = mappedByteBuffer.get();
 //            if(temp == '|') break;
@@ -323,6 +390,5 @@ public class PositiveSq {
 //        String stringid = new String(res);
 //        id.clear();
 //        return Long.valueOf(stringid);
-    }
 }
 
