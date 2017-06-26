@@ -96,7 +96,7 @@ public class PositiveSq {
                 while (true) {
                     //Step1: 读取废字段
                     rowNum++;
-                    if(rowNum == skipArray[skipArrayRownum][0]){
+                    if((skipArrayRownum<39)&&(rowNum == skipArray[skipArrayRownum][0])){
                         Length = skipArray[skipArrayRownum][1];
                         skipArrayRownum++;
                     }
