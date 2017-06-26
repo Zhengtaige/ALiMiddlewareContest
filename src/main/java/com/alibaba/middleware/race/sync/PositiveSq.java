@@ -15,7 +15,7 @@ import java.util.LinkedList;
  */
 public class PositiveSq {
     static Logger logger = LoggerFactory.getLogger(PositiveSq.class);
-    private static int Length = 61;
+    private static int Length = 55;
     private static byte[][] readdata;
     private static HashMap<Byte, Byte> typemap = new HashMap<Byte, Byte>();   //记录操作类型以及第几列属性
     private static LinkedList<Byte> namelist = new LinkedList<Byte>();
@@ -96,11 +96,11 @@ public class PositiveSq {
                 while (true) {
                     //Step1: 读取废字段
 
-                    rowNum++;
-                    if((skipArrayRownum<39)&&(rowNum == skipArray[skipArrayRownum][0])){
-                        Length = skipArray[skipArrayRownum][1];
-                        skipArrayRownum++;
-                    }
+//                    rowNum++;
+//                    if((skipArrayRownum<39)&&(rowNum == skipArray[skipArrayRownum][0])){
+//                        Length = skipArray[skipArrayRownum][1];
+//                        skipArrayRownum++;
+//                    }
                     mappedByteBuffer.position(mappedByteBuffer.position() + Length);
                     handleIUD(mappedByteBuffer);
                 }
@@ -120,7 +120,7 @@ public class PositiveSq {
     }
     private static void handleIUD(MappedByteBuffer mappedByteBuffer) throws IOException {
         Binlog binlog = new Binlog();
-//        while (true) {
+        while (true) {
             operation=mappedByteBuffer.get();
             //Step2: 读取操作符
             switch (operation) {
@@ -268,7 +268,7 @@ public class PositiveSq {
                     middleResultHandler.action(binlog);
                     return;
             }
-//        }
+        }
     }
     public static void initMap() {
         typemap.put((byte)'i', (byte)0);
@@ -366,7 +366,6 @@ public class PositiveSq {
             return bitch;
         } else {
             bitch = bitch * 10 + (temp - 48);
-            if (bitch > 8000000) return 0;
         }
         while (true) {
             temp = mappedByteBuffer.get();
