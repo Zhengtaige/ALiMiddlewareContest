@@ -22,8 +22,8 @@ public class Server {
     public static String params;
     public static String schemaName;
     public static String tableName;
-    public static int startPkId;
-    public static int endPkId;
+    public static int startPkId=1000000;
+    public static int endPkId=8000000;
 
     // 保存channel,保存key和value为   客户端ip，chanel
     private static Map<String, Channel> map = new ConcurrentHashMap<String, Channel>();

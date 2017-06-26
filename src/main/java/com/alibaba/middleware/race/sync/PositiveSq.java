@@ -51,6 +51,9 @@ public class PositiveSq {
 ////        logger.info("{}", updateidnum);
 //        logger.info("{}", System.currentTimeMillis()-t1);
 //    }
+     public static void main(String[] args) throws IOException{
+             testTime();
+     }
 
     public static void testTime(){
         long t1 = System.currentTimeMillis();
@@ -58,7 +61,7 @@ public class PositiveSq {
         middleResultHandler = new MiddleResultHandler();
 //        new Thread(new middleResultHandler()).start();
         positiveread();
-        logger.info("{}", System.currentTimeMillis()-t1);
+        System.out.println(System.currentTimeMillis()-t1);
 
 
         //logger.info("firstNameSet size: {}", firstNameSet.toString());
@@ -73,7 +76,7 @@ public class PositiveSq {
     public static void positiveread() {
         for (int i = 1; i <= 10; i++) {
             try {
-                FileChannel fileChannel = new RandomAccessFile(Constants.DATA_HOME+"/" + i + ".txt", "r").getChannel();
+                FileChannel fileChannel = new RandomAccessFile(Constants.DATA_HOME+(i-1), "r").getChannel();
                 MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
                 while (true) {
                     //Step1: 读取废字段
@@ -81,17 +84,18 @@ public class PositiveSq {
                     handleIUD(mappedByteBuffer);
                 }
             } catch (IllegalArgumentException e){
-                logger.info("{}",i+"文件读取完毕!");
+                System.out.println(i+"文件读取完毕!");
             }
             catch (Exception e) {
-                logger.info("{}", e.getMessage());
+                e.printStackTrace();
+ //               System.out.println(e.getMessage());
 //                logger.info(e.getMessage());
             }
         }
-        logger.info("共有"+skipLenList.size()+"次前缀长度变化!");
+        System.out.println("共有"+skipLenList.size()+"次前缀长度变化!");
         for (long[] tmp:
              skipLenList) {
-            logger.info(tmp[0]+":"+tmp[1]);
+            System.out.println("{"+tmp[0]+":"+tmp[1]+"}");
         }
         Binlog binlog = new Binlog();
 //        Utils.binlogQueue.offer(binlog);
@@ -173,7 +177,7 @@ public class PositiveSq {
                     if (score2 > maxScore) maxScore = score2;
                     if (!idChanged) {
                         if (afterid != i++) {
-                            logger.info("here id changed:{}", i--);
+                            System.out.println("here id changed:"+ i--);
                             idChanged = true;
                         }
                     }
