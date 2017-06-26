@@ -95,6 +95,7 @@ public class PositiveSq {
                 MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
                 while (true) {
                     //Step1: 读取废字段
+
                     rowNum++;
                     if((skipArrayRownum<39)&&(rowNum == skipArray[skipArrayRownum][0])){
                         Length = skipArray[skipArrayRownum][1];
