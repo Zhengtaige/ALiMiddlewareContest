@@ -50,7 +50,7 @@ public class MiddleResultHandler implements Runnable {
                 }
             }
 
-            releaseResult(); //结束处理，生成结果文件
+//            releaseResult(); //结束处理，生成结果文件
 
         } catch (InterruptedException e) {
             e.printStackTrace();
