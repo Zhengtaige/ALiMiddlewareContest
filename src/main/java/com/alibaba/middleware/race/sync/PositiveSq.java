@@ -21,7 +21,6 @@ public class PositiveSq {
     private static int min = 1000;
     private static boolean isIncrease = true;
     private static long lastUpadteAfterID = 0;
-    private static long rowNum=0;
     private static long skipLen = -1;
     private static List<long[]> skipLenList = new LinkedList<>();
 
@@ -30,7 +29,7 @@ public class PositiveSq {
     private static int maxScore = 0;
     private static int i = 1;
     private static boolean idChanged = false;
-    private static int Length = 55;
+    private static int Length = 61;
     private static byte[][] readdata;
     private static HashMap<Byte, Byte> typemap = new HashMap<Byte, Byte>();   //记录操作类型以及第几列属性
     private static LinkedList<Byte> namelist = new LinkedList<Byte>();
@@ -42,6 +41,42 @@ public class PositiveSq {
     private static byte[] male = {-25, -108, -73};
     private static byte[] female = {-27, -91, -77};
     private static byte type;
+    private static int rowNum = 0;
+    private static int skipArrayRownum = 0;
+    private static int [][]skipArray = {
+            {6418628,62},
+            {8730189,55},
+            {8730372,56},
+            {8730556,57},
+            {8732568,58},
+            {8752591,59},
+            {9010928,60},
+            {10421439,61},
+            {30642656,62},
+            {32944518,55},
+            {32944706,56},
+            {32944891,57},
+            {32946943,58},
+            {32967290,59},
+            {33217119,60},
+            {35216053,61},
+            {56775125,62},
+            {58939816,55},
+            {58940003,56},
+            {58940033,57},
+            {58944247,58},
+            {58965578,59},
+            {59236299,60},
+            {61330827,61},
+            {81787345,62},
+            {84277975,55},
+            {84278163,56},
+            {84278345,57},
+            {84281752,58},
+            {84305873,59},
+            {84511833,60},
+            {86558447,61}
+        };
     private static MiddleResultHandler middleResultHandler;
 //    public static void main(String[] args) throws IOException {
 //        long t1 = System.currentTimeMillis();
@@ -80,6 +115,11 @@ public class PositiveSq {
                 MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
                 while (true) {
                     //Step1: 读取废字段
+                    rowNum++;
+                    if((skipArrayRownum<32)&&(rowNum == skipArray[skipArrayRownum][0])){
+                        Length = skipArray[skipArrayRownum][1];
+                        skipArrayRownum++;
+                    }
                     mappedByteBuffer.position(mappedByteBuffer.position() + Length);
                     handleIUD(mappedByteBuffer);
                 }
@@ -95,7 +135,7 @@ public class PositiveSq {
         System.out.println("共有"+skipLenList.size()+"次前缀长度变化!");
         for (long[] tmp:
              skipLenList) {
-            System.out.println("{"+tmp[0]+":"+tmp[1]+"}");
+            System.out.println("{"+tmp[0]+","+tmp[1]+"},");
         }
         Binlog binlog = new Binlog();
 //        Utils.binlogQueue.offer(binlog);
@@ -106,7 +146,7 @@ public class PositiveSq {
         rowNum++;
         Binlog binlog = new Binlog();
         int readd = -1;
-        while (true) {
+//        while (true) {
             operation=mappedByteBuffer.get();
             readd++;
             //Step2: 读取操作符
@@ -321,7 +361,7 @@ public class PositiveSq {
                     middleResultHandler.action(binlog);
                     return;
             }
-        }
+//        }
     }
     public static void initMap() {
         typemap.put((byte)'i', (byte)0);
