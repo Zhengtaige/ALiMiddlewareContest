@@ -26,14 +26,14 @@ interface Constants {
     //// 工作主目录
     String TESTER_HOME = "/home/admin";
     // 赛题数据
-//    String DATA_HOME = "/home/admin/canal_data";
-    String DATA_HOME = "/Users/Nick_Zhengtaige/Desktop/1/Data";
+    String DATA_HOME = "/home/admin/canal_data";
+//    String DATA_HOME = "/Users/Nick_Zhengtaige/Desktop/1/Data";
     // 结果文件目录(client端会用到)
     String RESULT_HOME = "/home/admin/sync_results/7721890v3f/";
     // 中间结果目录（client和server都会用到）
-//    String MIDDLE_HOME = "/home/admin/middle/7721890v3f/";
-    String MIDDLE_HOME = "/Users/Nick_Zhengtaige/Desktop/1/";
+    String MIDDLE_HOME = "/home/admin/middle/7721890v3f/";
+//    String MIDDLE_HOME = "/Users/Nick_Zhengtaige/Desktop/1/";
     //结果文件的命名
-    String RESULT_FILE_NAME = "ztgResult.rs";
+    String RESULT_FILE_NAME = "Result.rs";
 
 }

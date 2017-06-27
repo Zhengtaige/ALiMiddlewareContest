@@ -262,8 +262,8 @@ public class PositiveSq {
             RandomAccessFile randomAccessFile = new RandomAccessFile(new File(Constants.MIDDLE_HOME + Constants.RESULT_FILE_NAME), "rw");
             channel = randomAccessFile.getChannel();
             for (long i = Server.startPkId + 1; i < Server.endPkId ; i++) {
-                byte[][] colomns;
-                if ((colomns = resultMap.get(i))!=null) {
+                byte[][] colomns = resultMap.get(i);
+                if (colomns[0]!=null) {
                     ByteBuffer byteBuffer = ByteBuffer.allocate(256);
                     byteBuffer.put(String.valueOf(i).getBytes()); // id
                     byteBuffer.put((byte) 9); // \t
@@ -278,7 +278,12 @@ public class PositiveSq {
                                 }
                             }
                         }else{
-                            byteBuffer.put(colomns[j]);
+                            try {
+                                byteBuffer.put(colomns[j]);
+                            }catch (Exception e){
+                                System.out.println();
+                            }
+
                         }
                         byteBuffer.put((byte) 9); // \t
                     }
