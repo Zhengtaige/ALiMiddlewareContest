@@ -87,7 +87,7 @@ public class PositiveSq {
     public static void positiveread() {
         for (int i = 1; i <= 10; i++) {
             try {
-                FileChannel fileChannel = new RandomAccessFile(Constants.DATA_HOME+(i-1), "r").getChannel();
+                FileChannel fileChannel = new RandomAccessFile(Constants.DATA_HOME + "/" + i + ".txt", "r").getChannel();
                 MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
                 while (true) {
                     //Step1: 读取废字段
@@ -172,29 +172,28 @@ public class PositiveSq {
                     while(mappedByteBuffer.get()!='\n');
                     return;
                 }else if(!Utils.isInRange(afterid)){
-//                        while (mappedByteBuffer.get() != '\n') {
-//                            type = typemap.get(mappedByteBuffer.get());  //读到类型
-//                            if (type == 0) {
-//                                mappedByteBuffer.position(mappedByteBuffer.position()+21);
-//                            } else if (type == 1) {
-//                                mappedByteBuffer.position(mappedByteBuffer.position()+19);
-//                                while(mappedByteBuffer.get()!='|');
-//                            } else if (type == 2) {
-//                                mappedByteBuffer.position(mappedByteBuffer.position()+14);
-//                            } else {
-//                                //            mappedByteBuffer.position(mappedByteBuffer.position()+10);         //ztg
-//                                mappedByteBuffer.position(mappedByteBuffer.position()+3);
-//                                if(mappedByteBuffer.get()!='2')        //score1
-//                                {
-//                                    mappedByteBuffer.position(mappedByteBuffer.position()+7);
-//                                }
-//                                else{
-//                                    mappedByteBuffer.position(mappedByteBuffer.position()+8);
-//                                }
-//                                while(mappedByteBuffer.get()!='|');
-//                            }
-//                        }
-                    while (mappedByteBuffer.get() != '\n');
+                    while (mappedByteBuffer.get() != '\n') {
+                        type = typemap.get(mappedByteBuffer.get());  //读到类型
+                        if (type == 0) {
+                            mappedByteBuffer.position(mappedByteBuffer.position() + 21);
+                        } else if (type == 1) {
+                            mappedByteBuffer.position(mappedByteBuffer.position() + 19);
+                            while (mappedByteBuffer.get() != '|') ;
+                        } else if (type == 2) {
+                            mappedByteBuffer.position(mappedByteBuffer.position() + 14);
+                        } else {
+                            //            mappedByteBuffer.position(mappedByteBuffer.position()+10);         //ztg
+                            mappedByteBuffer.position(mappedByteBuffer.position() + 3);
+                            if (mappedByteBuffer.get() != '2')        //score1
+                            {
+                                mappedByteBuffer.position(mappedByteBuffer.position() + 7);
+                            } else {
+                                mappedByteBuffer.position(mappedByteBuffer.position() + 8);
+                            }
+                            while (mappedByteBuffer.get() != '|') ;
+                        }
+                    }
+//                    while (mappedByteBuffer.get() != '\n');
                     binlog.setId(beforeid);
                     binlog.setOperation((byte)'D');
 //                        Utils.binlogQueue.offer(binlog);
@@ -358,7 +357,7 @@ public class PositiveSq {
         long bitch = 0;
         byte temp = mappedByteBuffer.get();
         if (temp == '8' || temp == '9') {
-//            while (mappedByteBuffer.get() != '|') ;
+            while (mappedByteBuffer.get() != '|') ;
             return bitch;
         } else {
             bitch = bitch * 10 + (temp - 48);
@@ -369,6 +368,7 @@ public class PositiveSq {
             else {
                 bitch = bitch * 10 + (temp - 48);
                 if(bitch>=8000000) {
+                    while (mappedByteBuffer.get() != '|') ;
                     return 0;
                 }
             }
