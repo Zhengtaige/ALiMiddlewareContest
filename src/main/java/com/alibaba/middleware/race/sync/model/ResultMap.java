@@ -10,7 +10,7 @@ public class ResultMap {
 
     public ResultMap(int start, int end) {
         this.firstId = start + 1;
-        mapArray = new byte[end - firstId][][];
+        mapArray = new byte[end - firstId][5][];
     }
 
 //    public int size() {
