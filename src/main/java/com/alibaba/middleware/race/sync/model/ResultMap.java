@@ -39,7 +39,14 @@ public class ResultMap {
         mapArray[(int) (id - firstId)] = null;
     }
 
-    public void put(long id, byte [][]data) {
+    public void put(long id, byte []data,int i) {
+        if (mapArray[(int) (id - firstId)] == null){
+            mapArray[(int) (id - firstId)] = new byte[5][];
+        }
+            mapArray[(int) (id - firstId)][i] = data;
+
+    }
+    public void putArray(long id,byte [][]data){
         mapArray[(int) (id - firstId)] = data;
     }
 }

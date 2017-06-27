@@ -84,7 +84,7 @@ public class MiddleResultHandler implements Runnable {
     }
 
     private void insertRow(Binlog binlog){
-        resultMap.put(binlog.getId(),binlog.getData());
+//        resultMap.put(binlog.getId(),binlog.getData());
     }
 
     private void updateRow(Binlog binlog){
@@ -104,7 +104,7 @@ public class MiddleResultHandler implements Runnable {
             resultMap.remove(id);
             id = binlog.getNewid();
 //            if(Utils.isInRange(id)){
-                resultMap.put(id,olddata);
+//                resultMap.put(id,olddata);
 //            }
         }
     }
