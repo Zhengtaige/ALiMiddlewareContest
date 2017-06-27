@@ -115,11 +115,6 @@ public class PositiveSq {
                 MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
                 while (true) {
                     //Step1: 读取废字段
-                    rowNum++;
-                    if((skipArrayRownum<32)&&(rowNum == skipArray[skipArrayRownum][0])){
-                        Length = skipArray[skipArrayRownum][1];
-                        skipArrayRownum++;
-                    }
                     mappedByteBuffer.position(mappedByteBuffer.position() + Length);
                     handleIUD(mappedByteBuffer);
                 }
@@ -144,23 +139,27 @@ public class PositiveSq {
 
     private static void handleIUD(MappedByteBuffer mappedByteBuffer) throws IOException {
         rowNum++;
+        if((skipArrayRownum<32)&&(rowNum == skipArray[skipArrayRownum][0]-1)){
+            Length = skipArray[skipArrayRownum][1];
+            skipArrayRownum++;
+        }
         Binlog binlog = new Binlog();
-        int readd = -1;
+//        int readd = -1;
 //        while (true) {
             operation=mappedByteBuffer.get();
-            readd++;
+//            readd++;
             //Step2: 读取操作符
             switch (operation) {
                 case 'I':
-                    if (readd > max) max = readd;
-                    if (readd < min) min = readd;
-                    if(readd + Length != skipLen){
-                        long []tmp = new long[2];
-                        tmp[0] = rowNum;
-                        tmp[1] = readd + Length;
-                        skipLen = tmp[1];
-                        skipLenList.add(tmp);
-                    }
+//                    if (readd > max) max = readd;
+//                    if (readd < min) min = readd;
+//                    if(readd + Length != skipLen){
+//                        long []tmp = new long[2];
+//                        tmp[0] = rowNum;
+//                        tmp[1] = readd + Length;
+//                        skipLen = tmp[1];
+//                        skipLenList.add(tmp);
+//                    }
 
                     readdata = new byte[5][];
                     mappedByteBuffer.position(mappedByteBuffer.position()+13);
@@ -231,15 +230,15 @@ public class PositiveSq {
                     return;
 
                 case 'U':
-                    if (readd > max) max = readd;
-                    if (readd < min) min = readd;
-                    if(readd + Length != skipLen){
-                        long []tmp = new long[2];
-                        tmp[0] = rowNum;
-                        tmp[1] = readd + Length;
-                        skipLen = tmp[1];
-                        skipLenList.add(tmp);
-                    }
+//                    if (readd > max) max = readd;
+//                    if (readd < min) min = readd;
+//                    if(readd + Length != skipLen){
+//                        long []tmp = new long[2];
+//                        tmp[0] = rowNum;
+//                        tmp[1] = readd + Length;
+//                        skipLen = tmp[1];
+//                        skipLenList.add(tmp);
+//                    }
 
                     readdata = new byte[5][];
                     mappedByteBuffer.position(mappedByteBuffer.position()+8);
@@ -335,15 +334,15 @@ public class PositiveSq {
                     return;
 
                 case 'D':
-                    if (readd > max) max = readd;
-                    if (readd < min) min = readd;
-                    if(readd + Length != skipLen){
-                        long []tmp = new long[2];
-                        tmp[0] = rowNum;
-                        tmp[1] = readd + Length;
-                        skipLen = tmp[1];
-                        skipLenList.add(tmp);
-                    }
+//                    if (readd > max) max = readd;
+//                    if (readd < min) min = readd;
+//                    if(readd + Length != skipLen){
+//                        long []tmp = new long[2];
+//                        tmp[0] = rowNum;
+//                        tmp[1] = readd + Length;
+//                        skipLen = tmp[1];
+//                        skipLenList.add(tmp);
+//                    }
 
                     mappedByteBuffer.position(mappedByteBuffer.position()+8);
                     beforeid = linkid(mappedByteBuffer, namelist);
@@ -393,17 +392,26 @@ public class PositiveSq {
         score.clear();
         return res;
     }
-    public static long linkid(MappedByteBuffer mappedByteBuffer,LinkedList<Byte> id){
-        while(true){
-            byte temp = mappedByteBuffer.get();
-            if(temp == '|') break;
-            else id.add(temp);
+    public static long linkid(MappedByteBuffer mappedByteBuffer, LinkedList<Byte> id) {    //ztg尝试修改
+        long bitch = 0;
+        byte temp = mappedByteBuffer.get();
+        if (temp == '8' || temp == '9') {
+            while (mappedByteBuffer.get() != '|') ;
+            return bitch;
+        } else {
+            bitch = bitch * 10 + (temp - 48);
         }
-        byte[] res = new byte[id.size()];
-        for(int i=0;i<id.size();i++)  res[i] = id.get(i);
-        String stringid = new String(res);
-        id.clear();
-        return Long.valueOf(stringid);
+        while (true) {
+            temp = mappedByteBuffer.get();
+            if (temp == '|') break;
+            else {
+                bitch = bitch * 10 + (temp - 48);
+                if(bitch>=8000000) {
+                    return 0;
+                }
+            }
+        }
+        return bitch;
     }
 }
 
