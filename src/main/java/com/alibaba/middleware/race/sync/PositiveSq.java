@@ -28,15 +28,6 @@ public class PositiveSq {
     private static byte type;
     public static boolean resultReleased = false;
     private static ResultMap resultMap=new ResultMap(Server.startPkId,Server.endPkId); ;
-
-//    public static void main(String[] args) throws IOException {
-//        long t1 = System.currentTimeMillis();
-//        initMap();
-//        new Thread(new middleResultHandler()).start();
-//        positiveread();
-////        logger.info("{}", updateidnum);
-//        logger.info("{}", System.currentTimeMillis()-t1);
-//    }
     public static void main(String[] args) throws IOException {
         testTime();
    }
