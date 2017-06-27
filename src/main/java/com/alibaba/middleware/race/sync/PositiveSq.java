@@ -4,13 +4,14 @@ import com.alibaba.middleware.race.sync.model.ResultMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
-import java.util.LinkedList;
 
 /**
  * Created by nick_zhengtaige on 2017/6/16.
@@ -18,13 +19,14 @@ import java.util.LinkedList;
 public class PositiveSq {
     static Logger logger = LoggerFactory.getLogger(PositiveSq.class);
     private static int Length = 55;
-    private static HashMap<Byte, Byte> typemap = new HashMap<Byte, Byte>();   //记录操作类型以及第几列属性
+    private static HashMap<Byte, Byte> typemap = new HashMap<>();   //记录操作类型以及第几列属性
     private static long beforeid;
     private static long afterid ;
     private static byte operation ;
     private static byte[] male = {-25, -108, -73};
     private static byte[] female = {-27, -91, -77};
     private static byte type;
+    public static boolean resultReleased = false;
     private static ResultMap resultMap=new ResultMap(Server.startPkId,Server.endPkId); ;
 
 //    public static void main(String[] args) throws IOException {
@@ -41,8 +43,6 @@ public class PositiveSq {
     public static void testTime(){
         long t1 = System.currentTimeMillis();
         initMap();
-//        middleResultHandler = new MiddleResultHandler();
-//        new Thread(new middleResultHandler()).start();
         try {
             positiveread();
         } catch (IOException e) {
@@ -68,7 +68,9 @@ public class PositiveSq {
                 logger.info("{}",i+"文件读取完毕!");
             }
         }
+        releaseResult();
     }
+
     private static void handleIUD(MappedByteBuffer mappedByteBuffer) throws IOException {
         while (true) {
         operation=mappedByteBuffer.get();
@@ -114,7 +116,6 @@ public class PositiveSq {
                 result[4] = new byte[6];
                 linkscore(mappedByteBuffer,result[4]);
                 mappedByteBuffer.get();
-
                 return;
 
             case 'U':
@@ -205,6 +206,7 @@ public class PositiveSq {
         }
         }
     }
+
     public static void initMap() {
         typemap.put((byte)'i', (byte)0);
         typemap.put((byte)'a', (byte)1);
@@ -242,7 +244,6 @@ public class PositiveSq {
         return ;
     }
 
-
     public static long linkid(MappedByteBuffer mappedByteBuffer) {    //ztg尝试修改
         long bitch = 0;
         byte temp = mappedByteBuffer.get();
@@ -260,6 +261,52 @@ public class PositiveSq {
             }
         }
         return bitch;
+    }
+
+    public static void releaseResult() {
+        logger.info("[{}]start release result", System.currentTimeMillis());
+        FileChannel channel;
+        try {
+            int num = 0 ;
+            RandomAccessFile randomAccessFile = new RandomAccessFile(new File(Constants.MIDDLE_HOME + Constants.RESULT_FILE_NAME), "rw");
+            channel = randomAccessFile.getChannel();
+            for (long i = Server.startPkId + 1; i < Server.endPkId ; i++) {
+                byte[][] colomns;
+                if ((colomns = resultMap.get(i))!=null) {
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(256);
+                    byteBuffer.put(String.valueOf(i).getBytes()); // id
+                    byteBuffer.put((byte) 9); // \t
+                    for (int j = 0; j < colomns.length - 1; j++) {
+                        if(j == 1 || j==3 || j==4){
+                            for (byte tmp:
+                                    colomns[j]) {
+                                if(tmp == '\t'){
+                                    break;
+                                }else{
+                                    byteBuffer.put(tmp);
+                                }
+                            }
+                        }else{
+                            byteBuffer.put(colomns[j]);
+                        }
+                        byteBuffer.put((byte) 9); // \t
+                    }
+                    byteBuffer.put(colomns[colomns.length - 1]);
+                    byteBuffer.put((byte) 10);
+                    byteBuffer.flip();
+                    while (byteBuffer.hasRemaining()) {
+                        channel.write(byteBuffer);
+                    }
+                }
+            }
+
+            channel.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        logger.info("[{}]release result done.", System.currentTimeMillis());
+        resultReleased = true;
     }
 }
 
