@@ -287,7 +287,14 @@ public class PositiveSq {
                         }
                         byteBuffer.put((byte) 9); // \t
                     }
-                    byteBuffer.put(colomns[colomns.length - 1]);
+                    for (byte tmp:
+                            colomns[colomns.length - 1]) {
+                        if(tmp == '\t'){
+                            break;
+                        }else{
+                            byteBuffer.put(tmp);
+                        }
+                    }
                     byteBuffer.put((byte) 10);
                     byteBuffer.flip();
                     while (byteBuffer.hasRemaining()) {
