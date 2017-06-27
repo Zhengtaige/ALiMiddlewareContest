@@ -4,16 +4,16 @@ package com.alibaba.middleware.race.sync;
  * Created by nick_zhengtaige on 2017/6/16.
  */
 public class Binlog {
-    private long id = -1;
+    private int id = -1;
     private byte[][] data;
     private byte operation;
-    private long newid = -1;
+    private int newid = -1;
 
     public void setData(byte[][] data) {
         this.data = data;
     }
 
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -21,7 +21,7 @@ public class Binlog {
         this.operation = operation;
     }
 
-    public void setNewid(long newid) {
+    public void setNewid(int newid) {
         this.newid = newid;
     }
 
@@ -33,11 +33,11 @@ public class Binlog {
         return operation;
     }
 
-    public long getId() {
+    public int getId() {
         return id;
     }
 
-    public long getNewid() {
+    public int getNewid() {
         return newid;
     }
 }
