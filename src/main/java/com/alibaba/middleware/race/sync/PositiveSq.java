@@ -371,10 +371,10 @@ public class PositiveSq {
             if (temp == '|') break;
             else {
                 bitch = bitch * 10 + (temp - 48);
-                if(bitch>=8000000) {
-                    while (mappedByteBuffer.get() != '|') ;
-                    return 0;
-                }
+//                if(bitch>=8000000) {
+//                    while (mappedByteBuffer.get() != '|') ;
+//                    return 0;
+//                }
             }
         }
         return bitch;
