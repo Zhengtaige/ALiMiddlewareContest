@@ -151,7 +151,8 @@ public class PositiveSq {
                     } else if (type == 1) {
                         mappedByteBuffer.position(mappedByteBuffer.position()+15);
                         while(mappedByteBuffer.get()!='|');
-                        linkname(mappedByteBuffer,olddata[1]);
+                        mappedByteBuffer.get(olddata[1],0,3);
+                        olddata[1][3]='\t';
                     } else if (type == 2) {
                         mappedByteBuffer.position(mappedByteBuffer.position()+10);
                         sex = mappedByteBuffer.get();
