@@ -57,6 +57,8 @@ public class PositiveSq {
             }
             catch (BufferUnderflowException e){
                 logger.info("{}",i+"文件读取完毕!");
+            }catch (Exception e){
+                logger.info("{}",e.getMessage());
             }
         }
         releaseResult();
