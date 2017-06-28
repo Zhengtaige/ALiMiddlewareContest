@@ -11,15 +11,13 @@ import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.security.KeyStore;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 /**
  * Created by nick_zhengtaige on 2017/6/16.
  */
 public class PositiveSq {
+    public static boolean resultReleased = false;
     static Logger logger = LoggerFactory.getLogger(PositiveSq.class);
     private static int Length = 55;
     private static HashMap<Byte, Byte> typemap = new HashMap<>();   //记录操作类型以及第几列属性
@@ -29,7 +27,6 @@ public class PositiveSq {
     private static byte[] male = {-25, -108, -73};
     private static byte[] female = {-27, -91, -77};
     private static byte type;
-    public static boolean resultReleased = false;
     private static ResultMap resultMap=new ResultMap(Server.startPkId,Server.endPkId);
     private static HashMap<String,Long> mapname = new HashMap<String, Long>();
     private static HashMap<String,Long> mapscore1 =new HashMap<String, Long>();
@@ -53,7 +50,7 @@ public class PositiveSq {
     public static void positiveread() throws IOException {
         for (int i = 1; i <= 10; i++) {
             try {
-                FileChannel fileChannel = new RandomAccessFile(Constants.DATA_HOME+(i-1), "r").getChannel();
+                FileChannel fileChannel = new RandomAccessFile(Constants.DATA_HOME + "/" + i + ".txt", "r").getChannel();
                 MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
                 while (true) {
                     //Step1: 读取废字段
@@ -259,7 +256,7 @@ public class PositiveSq {
             mappedByteBuffer.get();
             return result;
         }else{
-//            result[3] = '\t';
+            result[3] = '\t';
             System.arraycopy(result,0,shortlinkname,0,3);
             return shortlinkname;
         }
@@ -280,7 +277,7 @@ public class PositiveSq {
         }
         byte[] ree=new byte[tol];
         System.arraycopy(result,0,ree,0,tol);
-//        result[tol] = '\t';
+        result[tol] = '\t';
         return ree;
     }
 
